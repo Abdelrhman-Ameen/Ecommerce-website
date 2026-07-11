@@ -9,6 +9,7 @@ const productRouter = require("./routes/product-routes");
 const cartRouter = require("./routes/cart-routes");
 const orderRouter = require("./routes/order-routes");
 const imageRouter = require("./routes/image-routes");
+const adminRouter = require("./routes/admin-routes");
 
 dbConnect();
 
@@ -27,6 +28,7 @@ app.use("/api/v1/products", productRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/images", imageRouter);
+app.use("/api/v1/admin", adminRouter);
 
 app.use((req, res) => {
   res.status(404).json({ status: "fail", message: "Route not found" });

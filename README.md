@@ -37,8 +37,10 @@ I followed the same structure used during the backend sessions:
 - Add products to favorites
 - Add, update, and remove cart items
 - Create orders and follow their status
+- Show product, order, customer, revenue, and low-stock data on the admin dashboard
 - Check image resolution, lighting, and noise
 - Remove the image background and save it as PNG
+- Process an image from the admin page and attach it directly to a product
 
 ## Running the project
 
@@ -62,6 +64,19 @@ Start the server:
 
 ```bash
 npm run dev
+```
+
+To add the sample admin, customer, products, cart, and order to MongoDB, run:
+
+```bash
+npm run seed
+```
+
+The seed command clears the existing LuxeStudio sample collections before adding the new data. The sample login accounts are:
+
+```text
+Admin:    admin@luxestudio.com / Admin12345
+Customer: customer@luxestudio.com / Customer12345
 ```
 
 The API runs on `http://localhost:5000/api/v1`.
@@ -104,6 +119,14 @@ Image processing:
 ```text
 POST /images/analyze
 POST /images/remove-background
+POST /images/products/:productId/process
+```
+
+Admin:
+
+```text
+GET /admin/dashboard
+GET /admin/users
 ```
 
 Protected routes need the token in the request header:

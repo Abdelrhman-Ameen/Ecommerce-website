@@ -3,9 +3,12 @@ node_modules/
 uploads/*
 !uploads/.gitkeep
 !uploads/products/
+uploads/products/*
 !uploads/products/.gitkeep
 !uploads/users/
+uploads/users/*
 !uploads/users/.gitkeep
 !uploads/processed/
+uploads/processed/*
 !uploads/processed/.gitkeep
 npm-debug.log*

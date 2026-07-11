@@ -19,6 +19,6 @@ const productSchema = new mongoose.Schema({
   reviewsCount: { type: Number, min: 0, default: 0 },
   featured: { type: Boolean, default: false },
   isNewArrival: { type: Boolean, default: false },
-}, { timestamps: true });
+}, { timestamps: true, suppressReservedKeysWarning: true });
 
 module.exports = mongoose.model("Product", productSchema);

@@ -1,6 +1,7 @@
 const fs = require("fs").promises;
 const path = require("path");
 const sharp = require("sharp");
+const Product = require("../models/product-model");
 
 const analyzeImage = async (req, res) => {
   try {
@@ -15,16 +16,44 @@ const removeBackground = async (req, res) => {
     if (!req.file) return res.status(400).json({ status: "fail", message: "Image is required" });
     const analysis = await getImageAnalysis(req.file.path);
     if (analysis.status === "poor") return res.status(400).json({ status: "fail", message: "Image quality is too low. Upload a sharper, better-lit photo.", data: { analysis } });
-    const { removeBackground: remove } = await import("@imgly/background-removal-node");
-    const input = await fs.readFile(req.file.path);
-    const output = await remove(new Blob([input], { type: req.file.mimetype }));
-    const outputName = `no-bg-${path.parse(req.file.filename).name}.png`;
-    const outputPath = path.join(__dirname, "..", "uploads", "processed", outputName);
-    await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    await fs.writeFile(outputPath, Buffer.from(await output.arrayBuffer()));
+    const outputName = await createTransparentImage(req.file);
     res.status(200).json({ status: "success", message: "Background removed successfully", data: { imageUrl: outputName, analysis } });
   } catch (error) { res.status(400).json({ status: "error", message: `Image processing failed: ${error.message}` }); }
 };
+
+const processProductImage = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ status: "fail", message: "Image is required" });
+    const product = await Product.findById(req.params.productId);
+    if (!product) return res.status(404).json({ status: "fail", message: "Product not found" });
+
+    const analysis = await getImageAnalysis(req.file.path);
+    if (analysis.status === "poor") {
+      return res.status(400).json({ status: "fail", message: "Image quality is too low. Upload a sharper, better-lit photo.", data: { analysis } });
+    }
+
+    const outputName = await createTransparentImage(req.file);
+    product.imageUrl = req.file.filename;
+    product.processedImageUrl = outputName;
+    product.imageQuality = { score: analysis.score, status: analysis.status, noiseLevel: analysis.noiseLevel };
+    await product.save();
+
+    res.status(200).json({ status: "success", message: "Product image processed and published successfully", data: { product, analysis } });
+  } catch (error) {
+    res.status(400).json({ status: "error", message: `Image processing failed: ${error.message}` });
+  }
+};
+
+async function createTransparentImage(file) {
+  const { removeBackground: remove } = await import("@imgly/background-removal-node");
+  const input = await fs.readFile(file.path);
+  const output = await remove(new Blob([input], { type: file.mimetype }));
+  const outputName = `no-bg-${path.parse(file.filename).name}.png`;
+  const outputPath = path.join(__dirname, "..", "uploads", "processed", outputName);
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, Buffer.from(await output.arrayBuffer()));
+  return outputName;
+}
 
 async function getImageAnalysis(filePath) {
   const image = sharp(filePath);
@@ -63,4 +92,4 @@ async function getImageAnalysis(filePath) {
   };
 }
 
-module.exports = { analyzeImage, removeBackground };
+module.exports = { analyzeImage, removeBackground, processProductImage };
