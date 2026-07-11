@@ -1,58 +1,113 @@
-# LuxeStudio Backend
+# LuxeStudio
 
-REST API for the NTI MEAN Stack final project. It follows the same structure used in the course sessions: Express routes, controllers, Mongoose models, JWT authentication, role authorization, Multer uploads, filtering, sorting, and pagination.
+This is the backend for my NTI MEAN Stack final project.
 
-## Features
+The project is an e-commerce website for studio products. It also has image tools that check the uploaded photo quality and remove its background.
 
-- Customer signup/signin, profile, and favorite products
-- Product catalog with search, filters, price ranges, sorting, and pagination
-- Admin product CRUD with image uploads
-- Persistent shopping cart with stock validation
-- Checkout and order tracking (`ordered`, `processing`, `shipped`, `delivered`)
-- Admin order management
-- Product-photo quality, lighting, and noise checks
-- AI background removal with transparent PNG output
+## Technologies
 
-## Run locally
+- Node.js and Express
+- MongoDB and Mongoose
+- JWT for authentication
+- Multer for uploading images
+- Sharp for checking image quality
+- IMG.LY background removal
 
-1. Install Node.js 20+ and MongoDB.
-2. Copy `.env.example` to `.env` and update its values.
-3. Run:
+## Project structure
+
+I followed the same structure used during the backend sessions:
+
+- `models` contains the Mongoose schemas.
+- `controllers` contains the logic for each request.
+- `routes` contains the API endpoints.
+- `middleware` contains authentication, authorization, and Multer.
+- `config` contains the database connection.
+- `utils` contains small shared functions.
+
+## Main features
+
+- Sign up and sign in
+- Customer and admin roles
+- Add, edit, delete, and display products
+- Search, filter, sort, and paginate products
+- Add products to favorites
+- Add, update, and remove cart items
+- Create orders and follow their status
+- Check image resolution, lighting, and noise
+- Remove the image background and save it as PNG
+
+## Running the project
+
+Install the packages:
 
 ```bash
 npm install
+```
+
+Create a `.env` file:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection
+JWT_SECRET=your_secret_key
+JWT_EXPIRES_IN=7d
+CLIENT_URL=http://localhost:4200
+```
+
+Start the server:
+
+```bash
 npm run dev
 ```
 
-The API starts at `http://localhost:5000/api/v1`.
+The API runs on `http://localhost:5000/api/v1`.
 
-## Main endpoints
+## API routes
 
-| Method | Endpoint | Access |
-| --- | --- | --- |
-| POST | `/auth/signup` | Public |
-| POST | `/auth/signin` | Public |
-| GET | `/auth/me` | Customer/Admin |
-| PATCH | `/auth/favorites/:productId` | Customer/Admin |
-| GET | `/products` | Public |
-| GET | `/products/:id` | Public |
-| POST/PATCH/DELETE | `/products` | Admin |
-| GET/POST | `/cart` | Customer/Admin |
-| PATCH/DELETE | `/cart/:productId` | Customer/Admin |
-| POST | `/orders` | Customer/Admin |
-| GET | `/orders/my-orders` | Customer/Admin |
-| GET/PATCH | `/orders` | Admin |
-| POST | `/images/analyze` | Customer/Admin |
-| POST | `/images/remove-background` | Customer/Admin |
-
-Send protected requests with `Authorization: Bearer TOKEN`. Image requests use `multipart/form-data` with a field named `image`.
-
-## Product filtering examples
+Authentication:
 
 ```text
-GET /api/v1/products?category=decor&search=lamp
-GET /api/v1/products?price[gte]=100&price[lte]=500&sort=-rating
-GET /api/v1/products?featured=true&page=1&limit=12
+POST  /auth/signup
+POST  /auth/signin
+GET   /auth/me
+PATCH /auth/favorites/:productId
 ```
 
-The first background-removal request downloads the AI model and may take longer. Processed images are available under `/api/v1/uploads/processed/FILENAME`.
+Products:
+
+```text
+GET    /products
+GET    /products/:id
+POST   /products
+PATCH  /products/:id
+DELETE /products/:id
+```
+
+Cart and orders:
+
+```text
+GET    /cart
+POST   /cart
+PATCH  /cart/:productId
+DELETE /cart/:productId
+POST   /orders
+GET    /orders/my-orders
+GET    /orders/:id
+```
+
+Image processing:
+
+```text
+POST /images/analyze
+POST /images/remove-background
+```
+
+Protected routes need the token in the request header:
+
+```text
+Authorization: Bearer TOKEN
+```
+
+Images are sent as `multipart/form-data` using a field named `image`.
+
+The image-quality check uses the photo dimensions, average brightness, and the difference between neighboring grayscale pixels. The background-removal model then produces a transparent PNG if the uploaded image quality is acceptable.
