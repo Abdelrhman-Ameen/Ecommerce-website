@@ -4,6 +4,10 @@ This is the backend for my NTI MEAN Stack final project.
 
 The project is an e-commerce website for studio products. It also has image tools that check the uploaded photo quality and remove its background.
 
+## Current status
+
+The current version runs locally while the project is still under development. After the project is finished, it will be deployed on a Vercel server using the free hosting plan.
+
 ## Technologies
 
 - Node.js and Express
