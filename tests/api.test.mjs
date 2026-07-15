@@ -11,8 +11,10 @@ const Product = require('../models/product-model');
 const Cart = require('../models/cart-model');
 const Order = require('../models/order-model');
 const OfflineSale = require('../models/offline-sale-model');
+const HomepageSetting = require('../models/homepage-setting-model');
+const SiteMedia = require('../models/site-media-model');
 
-describe('Ma3rad El Gamila API production flow', () => {
+describe('Vellora API production flow', () => {
   const unique = Date.now();
   const email = `integration-${unique}@example.com`;
   const password = 'Customer-Test!2026';
@@ -22,14 +24,19 @@ describe('Ma3rad El Gamila API production flow', () => {
   let productId;
   let orderId;
   let offlineSaleId;
+  let uploadedMediaId;
+  let originalHomepage;
 
-  beforeAll(async () => { await connectDatabase(); });
+  beforeAll(async () => { await connectDatabase(); originalHomepage = await HomepageSetting.findOne({ key: 'homepage' }).lean(); });
 
   afterAll(async () => {
     if (userId) {
       await Promise.all([Cart.deleteMany({ user: userId }), Order.deleteMany({ user: userId }), User.deleteOne({ _id: userId })]);
     }
     await OfflineSale.deleteMany({ customerName: `Integration Debt ${unique}` });
+    if (uploadedMediaId) await SiteMedia.deleteOne({ _id: uploadedMediaId });
+    if (originalHomepage) await HomepageSetting.replaceOne({ key: 'homepage' }, originalHomepage, { upsert: true });
+    else await HomepageSetting.deleteOne({ key: 'homepage' });
     await Product.deleteMany({ name: new RegExp(`Integration Test ${unique}`) });
     await mongoose.disconnect();
   });
@@ -121,6 +128,31 @@ describe('Ma3rad El Gamila API production flow', () => {
 
     const dashboard = await admin.get('/api/v1/admin/dashboard').expect(200);
     expect(dashboard.body.data.offlineRevenue).toBeGreaterThanOrEqual(60);
+  });
+
+  it('manages homepage product choices and persistent uploaded media', async () => {
+    const baseline = await request(app).get('/api/v1/site/homepage').expect(200);
+    expect(baseline.body.data.heroSlides).toHaveLength(3);
+    expect(baseline.body.data.editorialImages).toHaveLength(2);
+
+    const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const uploaded = await admin.post('/api/v1/admin/homepage-media').send({ dataUrl: tinyPng }).expect(201);
+    const mediaUrl = uploaded.body.data.imageUrl;
+    uploadedMediaId = mediaUrl.split('/').pop();
+    await request(app).get(mediaUrl).expect(200).expect('Content-Type', /image\/png/);
+
+    try {
+      await admin.put('/api/v1/admin/homepage-settings').send({
+        heroMode: 'products', heroProductIds: [productId, productId, productId], heroImages: [],
+        editorialMode: 'custom', editorialProductIds: [], editorialImages: [mediaUrl, mediaUrl],
+      }).expect(200);
+      const managed = await request(app).get('/api/v1/site/homepage').expect(200);
+      expect(managed.body.data.heroSlides.every((slide) => slide.image.includes('catalog-01.jpg'))).toBe(true);
+      expect(managed.body.data.editorialImages.every((image) => image.image === mediaUrl)).toBe(true);
+    } finally {
+      if (originalHomepage) await HomepageSetting.replaceOne({ key: 'homepage' }, originalHomepage, { upsert: true });
+      else await HomepageSetting.deleteOne({ key: 'homepage' });
+    }
   });
 
   it('deletes the temporary product and clears sessions', async () => {

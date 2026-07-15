@@ -19,6 +19,22 @@ export interface Product {
   createdAt?: string;
 }
 
+export type HomepageMediaMode = 'default' | 'products' | 'custom';
+export interface HomepageSettings {
+  heroMode: HomepageMediaMode;
+  heroProductIds: string[];
+  heroImages: string[];
+  editorialMode: HomepageMediaMode;
+  editorialProductIds: string[];
+  editorialImages: string[];
+  updatedAt?: string | null;
+}
+export interface HomepageData {
+  settings: HomepageSettings;
+  heroSlides: Array<{ image: string; alt: string; background: string; accent: string }>;
+  editorialImages: Array<{ image: string; alt: string }>;
+}
+
 export interface User {
   _id: string;
   id?: string;

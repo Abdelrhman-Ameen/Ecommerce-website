@@ -2,6 +2,7 @@ const express = require('express');
 const { body, param, query } = require('express-validator');
 const controller = require('../controllers/admin-controllers');
 const offlineSales = require('../controllers/offline-sales-controllers');
+const homepage = require('../controllers/homepage-controllers');
 const authenticate = require('../middleware/authenticate-middleware');
 const authorize = require('../middleware/authorize-middleware');
 const validate = require('../middleware/validate-middleware');
@@ -10,6 +11,22 @@ const router = express.Router();
 router.use(authenticate, authorize('admin'));
 router.get('/dashboard', controller.getDashboard);
 router.get('/users', controller.getUsers);
+const managedImage = (value) => typeof value === 'string' && (/^\/assets\//.test(value) || /^\/api\/v1\/site\/media\/[a-f0-9]{24}$/i.test(value) || /^https:\/\//i.test(value));
+router.get('/homepage-settings', homepage.getHomepage);
+router.put('/homepage-settings', [
+  body('heroMode').isIn(['default', 'products', 'custom']),
+  body('heroProductIds').optional().isArray({ max: 3 }),
+  body('heroProductIds.*').optional({ checkFalsy: true }).isMongoId(),
+  body('heroImages').optional().isArray({ max: 3 }),
+  body('heroImages.*').optional().custom(managedImage),
+  body('editorialMode').isIn(['default', 'products', 'custom']),
+  body('editorialProductIds').optional().isArray({ max: 2 }),
+  body('editorialProductIds.*').optional({ checkFalsy: true }).isMongoId(),
+  body('editorialImages').optional().isArray({ max: 2 }),
+  body('editorialImages.*').optional().custom(managedImage),
+  validate,
+], homepage.updateHomepage);
+router.post('/homepage-media', body('dataUrl').isString().isLength({ min: 100, max: 245000 }), validate, homepage.uploadMedia);
 router.get('/offline-sales', query('limit').optional().isInt({ min: 1, max: 250 }), validate, offlineSales.getOfflineSales);
 router.post('/offline-sales', [
   body('customerName').trim().isLength({ min: 2, max: 100 }),

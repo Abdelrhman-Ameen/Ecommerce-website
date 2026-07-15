@@ -14,7 +14,7 @@ import { ThemeService } from '../core/theme.service';
     <header class="store-header sticky-top">
       <nav class="navbar navbar-expand-lg" aria-label="Primary navigation">
         <div class="container-xxl px-3 px-lg-4">
-          <a class="navbar-brand brand-mark" routerLink="/"><i class="bi bi-stars"></i> Ma3rad El Gamila</a>
+          <a class="navbar-brand brand-mark" routerLink="/"><i class="bi bi-stars"></i> Vellora</a>
           <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation" aria-controls="mainNavigation" aria-expanded="false" aria-label="Toggle navigation">
             <i class="bi bi-list fs-3"></i>
           </button>
