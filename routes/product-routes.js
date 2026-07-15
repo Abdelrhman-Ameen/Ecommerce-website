@@ -4,22 +4,30 @@ const controller = require('../controllers/product-controllers');
 const authenticate = require('../middleware/authenticate-middleware');
 const authorize = require('../middleware/authorize-middleware');
 const validate = require('../middleware/validate-middleware');
+const Category = require('../models/category-model');
+const Product = require('../models/product-model');
 
 const router = express.Router();
-const imageUrl = (value) => value.startsWith('/assets/') || /^https:\/\//i.test(value);
+const imageUrl = (value) => typeof value === 'string' && (value.startsWith('/assets/') || /^\/api\/v1\/site\/media\/[a-f0-9]{24}$/i.test(value) || /^https:\/\//i.test(value));
+async function categoryExists(value) {
+  const name = value.trim().replace(/\s+/g, ' ').toLowerCase();
+  if (await Category.exists({ name })) return true;
+  if (await Product.exists({ category: name })) return true;
+  throw new Error('Choose an existing category or create it in the admin catalog first');
+}
 function productFields(partial = false) {
   const field = (name) => (partial ? body(name).optional() : body(name));
   return [
     field('name').trim().isLength({ min: 2, max: 120 }).withMessage('Name must be 2–120 characters'),
     field('description').trim().isLength({ min: 20, max: 1200 }).withMessage('Description must be 20–1200 characters'),
-    field('category').trim().isLength({ min: 2, max: 50 }).withMessage('Category is required'),
+    field('category').trim().isLength({ min: 2, max: 50 }).withMessage('Category is required').bail().custom(categoryExists),
     body('collection').optional({ checkFalsy: true }).trim().isLength({ max: 80 }),
     field('price').isFloat({ min: 0, max: 1000000 }).toFloat().withMessage('Enter a valid price'),
     body('costPrice').optional().isFloat({ min: 0, max: 1000000 }).toFloat().withMessage('Enter a valid cost price'),
     body('oldPrice').optional({ nullable: true }).isFloat({ min: 0, max: 1000000 }).toFloat(),
     field('stock').isInt({ min: 0, max: 100000 }).toInt().withMessage('Enter a valid stock quantity'),
     body('isManuallyUnavailable').optional().isBoolean().toBoolean(),
-    field('imageUrl').trim().custom(imageUrl).withMessage('Use an /assets path or HTTPS image URL'),
+    field('imageUrl').trim().custom(imageUrl).withMessage('Upload an image, use an /assets path, or enter an HTTPS image URL'),
     body('gallery').optional().isArray({ max: 8 }).withMessage('Gallery may contain up to 8 images'),
     body('gallery.*').optional().custom(imageUrl).withMessage('Gallery images must use /assets paths or HTTPS URLs'),
     body('featured').optional().isBoolean().toBoolean(),

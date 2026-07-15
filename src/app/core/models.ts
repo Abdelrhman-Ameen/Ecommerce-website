@@ -75,7 +75,32 @@ export interface Order {
   createdAt: string;
 }
 
-export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'mobile_wallet' | 'other';
+export type PaymentMethod = 'cash' | 'instapay' | 'vodafone_cash' | 'card' | 'bank_transfer' | 'mobile_wallet' | 'other';
+
+export interface CatalogCategory {
+  _id: string | null;
+  name: string;
+  productCount: number;
+  createdAt?: string | null;
+}
+
+export type SupportTicketStatus = 'open' | 'in_progress' | 'resolved';
+export interface SupportSettings { email: string; phone: string; hours: string; }
+export interface SupportTicket {
+  _id: string;
+  ticketNumber: string;
+  user?: User | string | null;
+  name: string;
+  email: string;
+  phone?: string;
+  category: 'order' | 'product' | 'delivery' | 'return' | 'account' | 'other';
+  subject: string;
+  message: string;
+  status: SupportTicketStatus;
+  adminNote?: string;
+  createdAt: string;
+  resolvedAt?: string | null;
+}
 
 export interface OfflinePayment {
   _id: string;
@@ -90,11 +115,11 @@ export interface OfflineSale {
   customerName: string;
   customerKey: string;
   phone?: string;
-  product: string;
+  product?: string | null;
   productName: string;
   imageUrl: string;
-  quantity: number;
-  unitPrice: number;
+  quantity?: number | null;
+  unitPrice?: number | null;
   totalAmount: number;
   amountPaid: number;
   balanceDue: number;

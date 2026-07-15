@@ -8,7 +8,7 @@ async function getDashboard(req, res) {
   sixMonthsAgo.setUTCMonth(sixMonthsAgo.getUTCMonth() - 5, 1);
   sixMonthsAgo.setUTCHours(0, 0, 0, 0);
 
-  const [usersCount, productsCount, ordersCount, lowStockProducts, onlineSales, offlineSales, cancelled, monthlyOnline, monthlyOffline, statusBreakdown, inventory, recentOrders, latestProducts, highestDebts] = await Promise.all([
+  const [usersCount, productsCount, ordersCount, lowStockProducts, onlineSales, offlineSales, cancelled, monthlyOnline, monthlyOffline, statusBreakdown, inventory, recentOrders, latestProducts, highestDebts, onlineProductSales, offlineProductSales] = await Promise.all([
     User.countDocuments({ role: 'customer' }),
     Product.countDocuments(),
     Order.countDocuments(),
@@ -65,6 +65,26 @@ async function getDashboard(req, res) {
       { $sort: { balanceDue: -1 } },
       { $limit: 5 },
     ]),
+    Order.aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      { $unwind: '$items' },
+      { $group: {
+        _id: '$items.product',
+        productName: { $first: '$items.name' },
+        imageUrl: { $first: '$items.imageUrl' },
+        units: { $sum: '$items.quantity' },
+        revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+      } },
+    ]),
+    OfflineSale.aggregate([
+      { $group: {
+        _id: { $cond: [{ $ne: ['$product', null] }, { $toString: '$product' }, { $concat: ['manual:', { $toLower: '$productName' }] }] },
+        productName: { $first: '$productName' },
+        imageUrl: { $first: '$imageUrl' },
+        units: { $sum: { $ifNull: ['$quantity', 0] } },
+        revenue: { $sum: '$totalAmount' },
+      } },
+    ]),
   ]);
 
   const online = onlineSales[0] || {};
@@ -81,6 +101,20 @@ async function getDashboard(req, res) {
   const monthlySales = [...monthMap.values()].sort((a, b) => a.month.localeCompare(b.month));
   const totalTransactions = (online.activeOrders || 0) + (offline.salesCount || 0);
   const totalRevenue = (online.revenue || 0) + (offline.revenue || 0);
+  const productSalesMap = new Map();
+  for (const item of onlineProductSales) {
+    const key = String(item._id || `online:${item.productName}`);
+    productSalesMap.set(key, { productId: item._id ? String(item._id) : null, productName: item.productName, imageUrl: item.imageUrl || '', onlineUnits: item.units || 0, offlineUnits: 0, totalUnits: item.units || 0, revenue: item.revenue || 0 });
+  }
+  for (const item of offlineProductSales) {
+    const key = String(item._id);
+    const current = productSalesMap.get(key) || { productId: key.startsWith('manual:') ? null : key, productName: item.productName, imageUrl: item.imageUrl || '', onlineUnits: 0, offlineUnits: 0, totalUnits: 0, revenue: 0 };
+    current.offlineUnits += item.units || 0;
+    current.totalUnits += item.units || 0;
+    current.revenue += item.revenue || 0;
+    productSalesMap.set(key, current);
+  }
+  const productSales = [...productSalesMap.values()].sort((a, b) => b.totalUnits - a.totalUnits || b.revenue - a.revenue).slice(0, 250);
 
   res.status(200).json({
     status: 'success',
@@ -107,6 +141,7 @@ async function getDashboard(req, res) {
       recentOrders,
       latestProducts,
       highestDebts,
+      productSales,
     },
   });
 }

@@ -80,14 +80,26 @@ async function updateHomepage(req, res) {
   res.status(200).json({ status: 'success', message: 'Homepage settings saved', data: await buildHomepage(setting) });
 }
 
-async function uploadMedia(req, res) {
+function detectContentType(data) {
+  if (data.length >= 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff) return 'image/jpeg';
+  if (data.length >= 8 && data.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
+  if (data.length >= 12 && data.subarray(0, 4).toString() === 'RIFF' && data.subarray(8, 12).toString() === 'WEBP') return 'image/webp';
+  return null;
+}
+
+async function persistMedia(req, res, purpose, maxBytes) {
   const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(req.body.dataUrl || '');
   if (!match) throw new AppError('Upload a JPEG, PNG, or WebP image', 400);
   const data = Buffer.from(match[2], 'base64');
-  if (!data.length || data.length > 180000) throw new AppError('Optimized image must be 180 KB or smaller', 400);
-  const media = await SiteMedia.create({ data, contentType: match[1], byteLength: data.length, uploadedBy: req.user._id });
+  if (!data.length || data.length > maxBytes) throw new AppError(`Optimized image must be ${Math.round(maxBytes / 1000)} KB or smaller`, 400);
+  const detected = detectContentType(data);
+  if (!detected || detected !== match[1]) throw new AppError('The uploaded file is not a valid image', 400);
+  const media = await SiteMedia.create({ data, contentType: detected, byteLength: data.length, purpose, uploadedBy: req.user._id });
   res.status(201).json({ status: 'success', message: 'Image uploaded', data: { imageUrl: `/api/v1/site/media/${media._id}` } });
 }
+
+async function uploadMedia(req, res) { return persistMedia(req, res, 'homepage', 180000); }
+async function uploadProductMedia(req, res) { return persistMedia(req, res, 'product', 550000); }
 
 async function getMedia(req, res) {
   const media = await SiteMedia.findById(req.params.id).select('data contentType').lean();
@@ -97,4 +109,4 @@ async function getMedia(req, res) {
   res.status(200).send(media.data);
 }
 
-module.exports = { getHomepage, updateHomepage, uploadMedia, getMedia };
+module.exports = { getHomepage, updateHomepage, uploadMedia, uploadProductMedia, getMedia };

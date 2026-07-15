@@ -14,7 +14,7 @@ import { ThemeService } from '../core/theme.service';
     <header class="store-header sticky-top">
       <nav class="navbar navbar-expand-lg" aria-label="Primary navigation">
         <div class="container-xxl px-3 px-lg-4">
-          <a class="navbar-brand brand-mark" routerLink="/"><i class="bi bi-stars"></i> Vellora</a>
+          <a class="navbar-brand brand-mark" routerLink="/"><span class="brand-logo-crop"><img src="/assets/brand/vellora-logo.png" alt=""></span><span>Vellora</span></a>
           <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation" aria-controls="mainNavigation" aria-expanded="false" aria-label="Toggle navigation">
             <i class="bi bi-list fs-3"></i>
           </button>
@@ -23,6 +23,7 @@ import { ThemeService } from '../core/theme.service';
               <li class="nav-item"><a class="nav-link" routerLink="/" [routerLinkActiveOptions]="{exact:true}" routerLinkActive="active">{{ 'Home' | translate }}</a></li>
               <li class="nav-item"><a class="nav-link" routerLink="/products" routerLinkActive="active">{{ 'Products' | translate }}</a></li>
               <li class="nav-item"><a class="nav-link" routerLink="/products" [queryParams]="{isNewArrival:true}">{{ 'New arrivals' | translate }}</a></li>
+              <li class="nav-item"><a class="nav-link" routerLink="/support" routerLinkActive="active">{{ 'Support' | translate }}</a></li>
             </ul>
             <form class="header-search mx-lg-auto my-3 my-lg-0" role="search" (submit)="searchProducts($event)">
               <button class="search-submit" type="submit" [attr.aria-label]="'Search products' | translate"><i class="bi bi-search"></i></button>

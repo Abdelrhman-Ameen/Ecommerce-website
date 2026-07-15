@@ -13,6 +13,9 @@ const Order = require('../models/order-model');
 const OfflineSale = require('../models/offline-sale-model');
 const HomepageSetting = require('../models/homepage-setting-model');
 const SiteMedia = require('../models/site-media-model');
+const Category = require('../models/category-model');
+const SupportSetting = require('../models/support-setting-model');
+const SupportTicket = require('../models/support-ticket-model');
 
 describe('Vellora API production flow', () => {
   const unique = Date.now();
@@ -25,9 +28,14 @@ describe('Vellora API production flow', () => {
   let orderId;
   let offlineSaleId;
   let uploadedMediaId;
+  let uploadedProductMediaId;
+  let categoryId;
+  let supportTicketId;
   let originalHomepage;
+  let originalSupportSettings;
+  const categoryName = `integration testing ${unique}`;
 
-  beforeAll(async () => { await connectDatabase(); originalHomepage = await HomepageSetting.findOne({ key: 'homepage' }).lean(); });
+  beforeAll(async () => { await connectDatabase(); originalHomepage = await HomepageSetting.findOne({ key: 'homepage' }).lean(); originalSupportSettings = await SupportSetting.findOne({ key: 'support' }).lean(); });
 
   afterAll(async () => {
     if (userId) {
@@ -35,8 +43,13 @@ describe('Vellora API production flow', () => {
     }
     await OfflineSale.deleteMany({ customerName: `Integration Debt ${unique}` });
     if (uploadedMediaId) await SiteMedia.deleteOne({ _id: uploadedMediaId });
+    if (uploadedProductMediaId) await SiteMedia.deleteOne({ _id: uploadedProductMediaId });
+    if (supportTicketId) await SupportTicket.deleteOne({ _id: supportTicketId });
+    if (categoryId) await Category.deleteOne({ _id: categoryId });
     if (originalHomepage) await HomepageSetting.replaceOne({ key: 'homepage' }, originalHomepage, { upsert: true });
     else await HomepageSetting.deleteOne({ key: 'homepage' });
+    if (originalSupportSettings) await SupportSetting.replaceOne({ key: 'support' }, originalSupportSettings, { upsert: true });
+    else await SupportSetting.deleteOne({ key: 'support' });
     await Product.deleteMany({ name: new RegExp(`Integration Test ${unique}`) });
     await mongoose.disconnect();
   });
@@ -57,15 +70,21 @@ describe('Vellora API production flow', () => {
   it('enforces admin authorization and supports product CRUD', async () => {
     await customer.post('/api/v1/products').send({}).expect(403);
     await admin.post('/api/v1/auth/login').send({ email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD }).expect(200);
+    const category = await admin.post('/api/v1/admin/categories').send({ name: `  ${categoryName}  ` }).expect(201);
+    categoryId = category.body.data.category._id;
+    const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const productMedia = await admin.post('/api/v1/admin/product-media').send({ dataUrl: tinyPng }).expect(201);
+    uploadedProductMediaId = productMedia.body.data.imageUrl.split('/').pop();
+    await request(app).get(productMedia.body.data.imageUrl).expect(200).expect('Content-Type', /image\/png/);
     const created = await admin.post('/api/v1/products').send({
       name: `Integration Test ${unique}`,
       description: 'A temporary catalog product used to verify the complete production API workflow.',
-      category: '  Testing  ', collection: '  Automated   Checks ', price: 79, costPrice: 40, stock: 3,
-      imageUrl: '/assets/catalog/catalog-01.jpg', gallery: [], featured: false, isNewArrival: false, isManuallyUnavailable: false,
+      category: `  ${categoryName}  `, price: 79, costPrice: 40, stock: 3,
+      imageUrl: productMedia.body.data.imageUrl, gallery: [], featured: false, isNewArrival: false, isManuallyUnavailable: false,
     }).expect(201);
     productId = created.body.data.product._id;
-    expect(created.body.data.product.category).toBe('testing');
-    expect(created.body.data.product.collection).toBe('automated checks');
+    expect(created.body.data.product.category).toBe(categoryName);
+    expect(created.body.data.product.imageUrl).toContain('/api/v1/site/media/');
     const updated = await admin.put(`/api/v1/products/${productId}`).send({ ...created.body.data.product, price: 82, stock: 4 }).expect(200);
     expect(updated.body.data.product.price).toBe(82);
   });
@@ -95,6 +114,7 @@ describe('Vellora API production flow', () => {
     expect(dashboard.body.data).not.toHaveProperty('grossProfit');
     expect(dashboard.body.data).toHaveProperty('offlineRevenue');
     expect(dashboard.body.data).toHaveProperty('monthlySales');
+    expect(dashboard.body.data).toHaveProperty('productSales');
     await admin.patch(`/api/v1/products/${productId}`).send({ isManuallyUnavailable: true }).expect(200);
     await customer.post('/api/v1/cart').send({ productId, quantity: 1 }).expect(409);
     await admin.patch(`/api/v1/products/${productId}`).send({ isManuallyUnavailable: false }).expect(200);
@@ -108,7 +128,7 @@ describe('Vellora API production flow', () => {
       quantity: 1,
       unitPrice: 60,
       amountPaid: 20,
-      paymentMethod: 'card',
+      paymentMethod: 'instapay',
       saleDate: new Date().toISOString(),
     }).expect(201);
     offlineSaleId = created.body.data.sale._id;
@@ -130,6 +150,22 @@ describe('Vellora API production flow', () => {
     expect(dashboard.body.data.offlineRevenue).toBeGreaterThanOrEqual(60);
   });
 
+  it('records a fully manual store debt without a catalog product or quantity', async () => {
+    const manual = await admin.post('/api/v1/admin/offline-sales').send({
+      customerName: `Integration Debt ${unique}`,
+      manualProductName: 'Unlisted showroom item',
+      totalAmount: 125,
+      amountPaid: 25,
+      paymentMethod: 'vodafone_cash',
+      saleDate: new Date().toISOString(),
+    }).expect(201);
+    expect(manual.body.data.sale.product).toBeNull();
+    expect(manual.body.data.sale.quantity).toBeNull();
+    expect(manual.body.data.sale.productName).toBe('Unlisted showroom item');
+    expect(manual.body.data.sale.balanceDue).toBe(100);
+    await OfflineSale.deleteOne({ _id: manual.body.data.sale._id });
+  });
+
   it('manages homepage product choices and persistent uploaded media', async () => {
     const baseline = await request(app).get('/api/v1/site/homepage').expect(200);
     expect(baseline.body.data.heroSlides).toHaveLength(3);
@@ -147,7 +183,7 @@ describe('Vellora API production flow', () => {
         editorialMode: 'custom', editorialProductIds: [], editorialImages: [mediaUrl, mediaUrl],
       }).expect(200);
       const managed = await request(app).get('/api/v1/site/homepage').expect(200);
-      expect(managed.body.data.heroSlides.every((slide) => slide.image.includes('catalog-01.jpg'))).toBe(true);
+      expect(managed.body.data.heroSlides.every((slide) => slide.image.includes('/api/v1/site/media/'))).toBe(true);
       expect(managed.body.data.editorialImages.every((image) => image.image === mediaUrl)).toBe(true);
     } finally {
       if (originalHomepage) await HomepageSetting.replaceOne({ key: 'homepage' }, originalHomepage, { upsert: true });
@@ -155,10 +191,31 @@ describe('Vellora API production flow', () => {
     }
   });
 
+  it('creates and resolves a customer support ticket with editable contact details', async () => {
+    const contact = await request(app).get('/api/v1/support/contact').expect(200);
+    expect(contact.body.data.settings).toHaveProperty('email');
+    const created = await customer.post('/api/v1/support/tickets').send({
+      name: 'Integration Customer', email, phone: '+201000000099', category: 'order',
+      subject: 'Integration support request', message: 'Please verify that this temporary support ticket reaches the admin console.',
+    }).expect(201);
+    supportTicketId = created.body.data.ticket._id;
+    const mine = await customer.get('/api/v1/support/my-tickets').expect(200);
+    expect(mine.body.data.tickets.some((ticket) => ticket._id === supportTicketId)).toBe(true);
+    const adminView = await admin.get('/api/v1/admin/support').expect(200);
+    expect(adminView.body.data.tickets.some((ticket) => ticket._id === supportTicketId)).toBe(true);
+    await admin.put('/api/v1/admin/support/settings').send({ email: 'qa-support@vellora.store', phone: '+201000000077', hours: 'Integration hours' }).expect(200);
+    const resolved = await admin.patch(`/api/v1/admin/support/tickets/${supportTicketId}`).send({ status: 'resolved', adminNote: 'Resolved by automated verification.' }).expect(200);
+    expect(resolved.body.data.ticket.status).toBe('resolved');
+    expect(resolved.body.data.ticket.adminNote).toContain('automated verification');
+    if (originalSupportSettings) await SupportSetting.replaceOne({ key: 'support' }, originalSupportSettings, { upsert: true });
+    else await SupportSetting.deleteOne({ key: 'support' });
+  });
+
   it('deletes the temporary product and clears sessions', async () => {
     if (offlineSaleId) { await OfflineSale.deleteOne({ _id: offlineSaleId }); offlineSaleId = undefined; }
     await admin.delete(`/api/v1/products/${productId}`).expect(200);
     productId = undefined;
+    if (categoryId) { await admin.delete(`/api/v1/admin/categories/${categoryId}`).expect(200); categoryId = undefined; }
     await customer.post('/api/v1/auth/logout').send({}).expect(200);
     await customer.get('/api/v1/auth/me').expect(401);
   });

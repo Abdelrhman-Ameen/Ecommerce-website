@@ -13,6 +13,7 @@ const cartRouter = require('./routes/cart-routes');
 const orderRouter = require('./routes/order-routes');
 const adminRouter = require('./routes/admin-routes');
 const siteRouter = require('./routes/site-routes');
+const supportRouter = require('./routes/support-routes');
 const { requestContext, sanitizeInput, enforceTrustedOrigin } = require('./middleware/security-middleware');
 const { notFound, errorHandler } = require('./middleware/error-middleware');
 
@@ -34,7 +35,7 @@ app.use(cors((req, callback) => {
   }
   callback(null, { origin: allowed, credentials: true, methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] });
 }));
-app.use(express.json({ limit: '250kb' }));
+app.use(express.json({ limit: '800kb' }));
 app.use(cookieParser());
 app.use(sanitizeInput);
 app.use(enforceTrustedOrigin);
@@ -66,6 +67,7 @@ app.use('/api/v1/products', productRouter);
 app.use('/api/v1/cart', cartRouter);
 app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/site', siteRouter);
+app.use('/api/v1/support', supportRouter);
 app.use('/api/v1/admin', adminRouter);
 
 app.use(notFound);
