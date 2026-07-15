@@ -400,6 +400,17 @@ const ARABIC: Record<string, string> = {
   'Admin response note': 'رد الإدارة',
   'This note is visible to the signed-in customer.': 'هذه الملاحظة ظاهرة للعميل المسجل دخوله.',
   'Update ticket': 'تحديث التذكرة',
+  'Fashion': 'الأزياء',
+  'Bags': 'الحقائب',
+  'Main category': 'الفئة الرئيسية',
+  'Subcategory': 'الفئة الفرعية',
+  'All of main category': 'كل الفئة الرئيسية',
+  'Use the closest product type when one is available.': 'اختر نوع المنتج الأقرب عند توفره.',
+  'New category or subcategory': 'فئة رئيسية أو فرعية جديدة',
+  'Create as a main category': 'إنشاء كفئة رئيسية',
+  'Inside': 'داخل',
+  'subcategories': 'فئات فرعية',
+  'Optional product type': 'نوع المنتج اختياري',
 };
 
 @Injectable({ providedIn: 'root' })

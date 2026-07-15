@@ -4,6 +4,7 @@ const productSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true, trim: true, minlength: 2, maxlength: 120 },
   description: { type: String, required: true, trim: true, minlength: 20, maxlength: 1200 },
   category: { type: String, required: true, trim: true, lowercase: true, maxlength: 50, index: true },
+  subcategory: { type: String, trim: true, lowercase: true, maxlength: 50, index: true },
   collection: { type: String, trim: true, lowercase: true, maxlength: 80 },
   price: { type: Number, required: true, min: 0, max: 1000000 },
   costPrice: { type: Number, required: true, min: 0, max: 1000000, default: 0 },
@@ -26,11 +27,12 @@ const productSchema = new mongoose.Schema({
   },
 });
 
-productSchema.index({ name: 'text', description: 'text', category: 'text' });
+productSchema.index({ name: 'text', description: 'text', category: 'text', subcategory: 'text' });
 
 productSchema.pre('validate', function normalizeCatalogFields() {
   const normalize = (value) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').toLowerCase() : value;
   this.category = normalize(this.category);
+  this.subcategory = normalize(this.subcategory) || undefined;
   this.collection = normalize(this.collection);
 });
 

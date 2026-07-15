@@ -6,6 +6,7 @@ export interface Product {
   name: string;
   description: string;
   category: string;
+  subcategory?: string;
   collection?: string;
   price: number;
   costPrice: number;
@@ -80,8 +81,15 @@ export type PaymentMethod = 'cash' | 'instapay' | 'vodafone_cash' | 'card' | 'ba
 export interface CatalogCategory {
   _id: string | null;
   name: string;
+  parent: string | null;
   productCount: number;
+  subcategoryCount?: number;
   createdAt?: string | null;
+}
+
+export interface CatalogCategoryNode {
+  name: string;
+  subcategories: string[];
 }
 
 export type SupportTicketStatus = 'open' | 'in_progress' | 'resolved';

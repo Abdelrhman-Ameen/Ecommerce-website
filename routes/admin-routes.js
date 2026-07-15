@@ -31,7 +31,7 @@ router.put('/homepage-settings', [
 router.post('/homepage-media', body('dataUrl').isString().isLength({ min: 100, max: 245000 }), validate, homepage.uploadMedia);
 router.post('/product-media', body('dataUrl').isString().isLength({ min: 100, max: 750000 }), validate, homepage.uploadProductMedia);
 router.get('/categories', categories.getCategories);
-router.post('/categories', body('name').trim().isLength({ min: 2, max: 50 }), validate, categories.createCategory);
+router.post('/categories', body('name').trim().isLength({ min: 2, max: 50 }), body('parent').optional({ checkFalsy: true }).trim().isLength({ min: 2, max: 50 }), validate, categories.createCategory);
 router.delete('/categories/:id', param('id').isMongoId(), validate, categories.deleteCategory);
 router.get('/support', query('status').optional().isIn(['all', 'open', 'in_progress', 'resolved']), validate, support.getAdminSupport);
 router.put('/support/settings', [

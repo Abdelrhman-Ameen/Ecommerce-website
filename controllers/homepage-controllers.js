@@ -102,11 +102,13 @@ async function uploadMedia(req, res) { return persistMedia(req, res, 'homepage',
 async function uploadProductMedia(req, res) { return persistMedia(req, res, 'product', 550000); }
 
 async function getMedia(req, res) {
-  const media = await SiteMedia.findById(req.params.id).select('data contentType').lean();
+  const media = await SiteMedia.findById(req.params.id).select('data contentType byteLength');
   if (!media) throw new AppError('Image not found', 404);
+  const data = Buffer.isBuffer(media.data) ? media.data : Buffer.from(media.data);
   res.setHeader('Content-Type', media.contentType);
+  res.setHeader('Content-Length', data.length);
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-  res.status(200).send(media.data);
+  res.status(200).end(data);
 }
 
 module.exports = { getHomepage, updateHomepage, uploadMedia, uploadProductMedia, getMedia };
