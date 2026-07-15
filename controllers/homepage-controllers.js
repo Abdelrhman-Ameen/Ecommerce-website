@@ -4,13 +4,13 @@ const Product = require('../models/product-model');
 const AppError = require('../utils/app-error');
 
 const DEFAULT_HERO = [
-  { image: '/assets/home/fashion-hero-01.webp', alt: 'Woman in an embroidered sage abaya and matching hijab', background: '#71897d', accent: '#d8b16b' },
-  { image: '/assets/home/fashion-hero-02.webp', alt: 'Woman with visible hair in a full-length charcoal coat and wide-leg trousers', background: '#0b1716', accent: '#c9a38f' },
-  { image: '/assets/home/fashion-hero-03.webp', alt: 'Woman with visible hair wearing a long silver trench coat in an editorial studio portrait', background: '#0c182b', accent: '#d8d2c5' },
+  { image: '/assets/home/fashion-hero-01.webp', alt: 'Model in a sculptural black evening look against a red studio background', background: '#7d1718', accent: '#ee5a46' },
+  { image: '/assets/home/fashion-hero-02.webp', alt: 'Model in a monochrome editorial look', background: '#d6d2cc', accent: '#171717' },
+  { image: '/assets/home/fashion-hero-03.webp', alt: 'Model wearing a checked coat and white sunglasses', background: '#063b3e', accent: '#ff5a36' },
 ];
 const DEFAULT_EDITORIAL = [
-  { image: '/assets/home/fashion-hero-02.webp', alt: 'Full-length modest charcoal coat and wide-leg trouser look' },
-  { image: '/assets/home/fashion-hero-03.webp', alt: 'Long silver trench coat in a dramatic studio portrait' },
+  { image: '/assets/home/fashion-hero-02.webp', alt: 'Black and white editorial fashion portrait' },
+  { image: '/assets/home/fashion-hero-03.webp', alt: 'Street fashion portrait with sunglasses' },
 ];
 
 function serializeSettings(setting) {

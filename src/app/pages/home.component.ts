@@ -17,9 +17,9 @@ interface FashionSlide {
 }
 
 const DEFAULT_SLIDES: FashionSlide[] = [
-  { image: '/assets/home/fashion-hero-01.webp', alt: 'Woman in an embroidered sage abaya and matching hijab', background: '#71897d', accent: '#d8b16b', number: '01' },
-  { image: '/assets/home/fashion-hero-02.webp', alt: 'Woman with visible hair in a full-length charcoal coat and wide-leg trousers', background: '#0b1716', accent: '#c9a38f', number: '02' },
-  { image: '/assets/home/fashion-hero-03.webp', alt: 'Woman with visible hair wearing a long silver trench coat in an editorial studio portrait', background: '#0c182b', accent: '#d8d2c5', number: '03' },
+  { image: '/assets/home/fashion-hero-01.webp', alt: 'Model in a sculptural black evening look against a red studio background', background: '#7d1718', accent: '#ee5a46', number: '01' },
+  { image: '/assets/home/fashion-hero-02.webp', alt: 'Model in a monochrome editorial look', background: '#d6d2cc', accent: '#171717', number: '02' },
+  { image: '/assets/home/fashion-hero-03.webp', alt: 'Model wearing a checked coat and white sunglasses', background: '#063b3e', accent: '#ff5a36', number: '03' },
 ];
 
 @Component({
@@ -85,7 +85,7 @@ const DEFAULT_SLIDES: FashionSlide[] = [
 export class HomeComponent implements OnInit, OnDestroy {
   readonly campaignLines = ['Wear Your Confidence', 'Own the moment', 'Move without permission'];
   readonly slides = signal<FashionSlide[]>(DEFAULT_SLIDES);
-  readonly editorialImages = signal([{ image: '/assets/home/fashion-hero-02.webp', alt: 'Full-length modest charcoal coat and wide-leg trouser look' }, { image: '/assets/home/fashion-hero-03.webp', alt: 'Long silver trench coat in a dramatic studio portrait' }]);
+  readonly editorialImages = signal([{ image: '/assets/home/fashion-hero-02.webp', alt: 'Black and white editorial fashion portrait' }, { image: '/assets/home/fashion-hero-03.webp', alt: 'Street fashion portrait with sunglasses' }]);
   readonly products = signal<Product[]>([]);
   readonly loading = signal(true);
   readonly activeIndex = signal(0);
