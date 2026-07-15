@@ -41,19 +41,34 @@ async function getOfflineSales(req, res) {
 }
 
 async function createOfflineSale(req, res) {
-  const quantity = Number(req.body.quantity);
-  const product = await Product.findOneAndUpdate(
-    { _id: req.body.productId, stock: { $gte: quantity }, isManuallyUnavailable: { $ne: true } },
-    { $inc: { stock: -quantity } },
-    { returnDocument: 'after' },
-  );
-  if (!product) throw new AppError('Product is unavailable or does not have enough stock', 409);
+  const quantity = req.body.quantity === undefined || req.body.quantity === null || req.body.quantity === '' ? null : Number(req.body.quantity);
+  let product = null;
+  let inventoryAdjusted = false;
+  if (req.body.productId) {
+    if (quantity) {
+      product = await Product.findOneAndUpdate(
+        { _id: req.body.productId, stock: { $gte: quantity }, isManuallyUnavailable: { $ne: true } },
+        { $inc: { stock: -quantity } },
+        { returnDocument: 'after' },
+      );
+      inventoryAdjusted = Boolean(product);
+      if (!product) throw new AppError('Product is unavailable or does not have enough stock', 409);
+    } else {
+      product = await Product.findById(req.body.productId);
+      if (!product) throw new AppError('Product not found', 404);
+    }
+  }
 
-  const unitPrice = req.body.unitPrice === undefined ? product.price : Number(req.body.unitPrice);
-  const totalAmount = Math.round(quantity * unitPrice * 100) / 100;
+  const unitPrice = req.body.unitPrice === undefined || req.body.unitPrice === null || req.body.unitPrice === ''
+    ? (product ? Number(product.price) : null)
+    : Number(req.body.unitPrice);
   const initialPayment = Number(req.body.amountPaid || 0);
+  let totalAmount = req.body.totalAmount === undefined || req.body.totalAmount === null || req.body.totalAmount === ''
+    ? (quantity && unitPrice !== null ? Math.round(quantity * unitPrice * 100) / 100 : initialPayment)
+    : Number(req.body.totalAmount);
+  totalAmount = Math.round(totalAmount * 100) / 100;
   if (initialPayment > totalAmount) {
-    await Product.updateOne({ _id: product._id }, { $inc: { stock: quantity } });
+    if (inventoryAdjusted) await Product.updateOne({ _id: product._id }, { $inc: { stock: quantity } });
     throw new AppError('Amount paid cannot exceed the sale total', 422);
   }
 
@@ -66,12 +81,12 @@ async function createOfflineSale(req, res) {
       recordedBy: req.userId,
     }] : [];
     const sale = await OfflineSale.create({
-      customerName: req.body.customerName,
+      customerName: req.body.customerName || 'Walk-in customer',
       customerKey: 'pending',
       phone: req.body.phone || '',
-      product: product._id,
-      productName: product.name,
-      imageUrl: product.imageUrl,
+      product: product?._id || null,
+      productName: product?.name || req.body.manualProductName || 'Manual sale',
+      imageUrl: product?.imageUrl || '',
       quantity,
       unitPrice,
       totalAmount,
@@ -82,7 +97,7 @@ async function createOfflineSale(req, res) {
     });
     res.status(201).json({ status: 'success', message: 'Store sale recorded', data: { sale } });
   } catch (error) {
-    await Product.updateOne({ _id: product._id }, { $inc: { stock: quantity } });
+    if (inventoryAdjusted) await Product.updateOne({ _id: product._id }, { $inc: { stock: quantity } });
     throw error;
   }
 }
