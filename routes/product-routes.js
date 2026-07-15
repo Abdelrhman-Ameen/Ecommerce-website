@@ -11,9 +11,18 @@ const router = express.Router();
 const imageUrl = (value) => typeof value === 'string' && (value.startsWith('/assets/') || /^\/api\/v1\/site\/media\/[a-f0-9]{24}$/i.test(value) || /^https:\/\//i.test(value));
 async function categoryExists(value) {
   const name = value.trim().replace(/\s+/g, ' ').toLowerCase();
-  if (await Category.exists({ name })) return true;
+  if (await Category.exists({ name, parent: null })) return true;
   if (await Product.exists({ category: name })) return true;
   throw new Error('Choose an existing category or create it in the admin catalog first');
+}
+async function subcategoryExists(value, { req }) {
+  const name = value.trim().replace(/\s+/g, ' ').toLowerCase();
+  let category = typeof req.body.category === 'string' ? req.body.category.trim().replace(/\s+/g, ' ').toLowerCase() : '';
+  if (!category && req.params.id) category = (await Product.findById(req.params.id).select('category').lean())?.category || '';
+  if (!category) throw new Error('Choose a main category first');
+  if (await Category.exists({ name, parent: category })) return true;
+  if (await Product.exists({ category, subcategory: name })) return true;
+  throw new Error('Choose a subcategory that belongs to the selected main category');
 }
 function productFields(partial = false) {
   const field = (name) => (partial ? body(name).optional() : body(name));
@@ -21,6 +30,7 @@ function productFields(partial = false) {
     field('name').trim().isLength({ min: 2, max: 120 }).withMessage('Name must be 2–120 characters'),
     field('description').trim().isLength({ min: 20, max: 1200 }).withMessage('Description must be 20–1200 characters'),
     field('category').trim().isLength({ min: 2, max: 50 }).withMessage('Category is required').bail().custom(categoryExists),
+    body('subcategory').optional({ checkFalsy: true }).trim().isLength({ min: 2, max: 50 }).bail().custom(subcategoryExists),
     body('collection').optional({ checkFalsy: true }).trim().isLength({ max: 80 }),
     field('price').isFloat({ min: 0, max: 1000000 }).toFloat().withMessage('Enter a valid price'),
     body('costPrice').optional().isFloat({ min: 0, max: 1000000 }).toFloat().withMessage('Enter a valid cost price'),
@@ -40,6 +50,7 @@ router.get('/', [
   query('limit').optional().isInt({ min: 1, max: 48 }).toInt(),
   query('minPrice').optional().isFloat({ min: 0 }).toFloat(),
   query('maxPrice').optional().isFloat({ min: 0 }).toFloat(),
+  query('subcategory').optional().trim().isLength({ min: 2, max: 50 }),
   query('sort').optional().isIn(['newest', 'priceAsc', 'priceDesc', 'name']),
   validate,
 ], controller.getAllProducts);

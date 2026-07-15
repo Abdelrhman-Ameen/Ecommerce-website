@@ -63,7 +63,7 @@ const DEFAULT_SLIDES: FashionSlide[] = [
 
     <section class="fashion-editorial">
       <div class="fashion-editorial-image fashion-editorial-primary"><img [src]="editorialImages()[0].image" [alt]="editorialImages()[0].alt" loading="lazy"><span>02 / EDITORIAL</span></div>
-      <div class="fashion-editorial-menu"><span>COLLECTIONS</span><nav><a routerLink="/products" [queryParams]="{isNewArrival:true}">{{ 'New arrivals' | translate }} <i class="bi bi-arrow-up-right"></i></a><a routerLink="/products" [queryParams]="{category:'accessories'}">{{ 'Accessories' | translate }} <i class="bi bi-arrow-up-right"></i></a><a routerLink="/products">{{ 'All products' | translate }} <i class="bi bi-arrow-up-right"></i></a></nav></div>
+      <div class="fashion-editorial-menu"><span>CATEGORIES</span><nav><a routerLink="/products" [queryParams]="{category:'fashion'}">{{ 'Fashion' | translate }} <i class="bi bi-arrow-up-right"></i></a><a routerLink="/products" [queryParams]="{category:'fashion',subcategory:'bags'}">{{ 'Bags' | translate }} <i class="bi bi-arrow-up-right"></i></a><a routerLink="/products">{{ 'All products' | translate }} <i class="bi bi-arrow-up-right"></i></a></nav></div>
       <div class="fashion-editorial-image fashion-editorial-secondary"><img [src]="editorialImages()[1].image" [alt]="editorialImages()[1].alt" loading="lazy"><span>03 / NIGHT</span></div>
     </section>
 

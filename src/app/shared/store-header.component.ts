@@ -22,7 +22,6 @@ import { ThemeService } from '../core/theme.service';
             <ul class="navbar-nav ms-lg-5 gap-lg-2">
               <li class="nav-item"><a class="nav-link" routerLink="/" [routerLinkActiveOptions]="{exact:true}" routerLinkActive="active">{{ 'Home' | translate }}</a></li>
               <li class="nav-item"><a class="nav-link" routerLink="/products" routerLinkActive="active">{{ 'Products' | translate }}</a></li>
-              <li class="nav-item"><a class="nav-link" routerLink="/products" [queryParams]="{isNewArrival:true}">{{ 'New arrivals' | translate }}</a></li>
               <li class="nav-item"><a class="nav-link" routerLink="/support" routerLinkActive="active">{{ 'Support' | translate }}</a></li>
             </ul>
             <form class="header-search mx-lg-auto my-3 my-lg-0" role="search" (submit)="searchProducts($event)">

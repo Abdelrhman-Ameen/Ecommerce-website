@@ -20,7 +20,7 @@ import { TranslatePipe } from './translate.pipe';
         <i class="bi" [class.bi-heart-fill]="isFavorite()" [class.bi-heart]="!isFavorite()"></i>
       </button>
       <div class="p-3 p-lg-4">
-        <div class="product-eyebrow">{{ product.category | titlecase }}</div>
+        <div class="product-eyebrow">{{ (product.subcategory || product.category) | titlecase }}</div>
         <a class="product-title" [routerLink]="['/products', product._id]">{{ product.name }}</a>
         <div class="product-card-purchase d-flex align-items-end justify-content-between gap-2 mt-3">
           <div class="product-card-pricing">

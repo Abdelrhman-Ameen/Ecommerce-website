@@ -30,6 +30,7 @@ describe('Vellora API production flow', () => {
   let uploadedMediaId;
   let uploadedProductMediaId;
   let categoryId;
+  let subcategoryId;
   let supportTicketId;
   let originalHomepage;
   let originalSupportSettings;
@@ -45,6 +46,7 @@ describe('Vellora API production flow', () => {
     if (uploadedMediaId) await SiteMedia.deleteOne({ _id: uploadedMediaId });
     if (uploadedProductMediaId) await SiteMedia.deleteOne({ _id: uploadedProductMediaId });
     if (supportTicketId) await SupportTicket.deleteOne({ _id: supportTicketId });
+    if (subcategoryId) await Category.deleteOne({ _id: subcategoryId });
     if (categoryId) await Category.deleteOne({ _id: categoryId });
     if (originalHomepage) await HomepageSetting.replaceOne({ key: 'homepage' }, originalHomepage, { upsert: true });
     else await HomepageSetting.deleteOne({ key: 'homepage' });
@@ -72,21 +74,30 @@ describe('Vellora API production flow', () => {
     await admin.post('/api/v1/auth/login').send({ email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD }).expect(200);
     const category = await admin.post('/api/v1/admin/categories').send({ name: `  ${categoryName}  ` }).expect(201);
     categoryId = category.body.data.category._id;
+    const subcategoryName = `integration subcategory ${unique}`;
+    const subcategory = await admin.post('/api/v1/admin/categories').send({ name: subcategoryName, parent: categoryName }).expect(201);
+    subcategoryId = subcategory.body.data.category._id;
     const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
     const productMedia = await admin.post('/api/v1/admin/product-media').send({ dataUrl: tinyPng }).expect(201);
     uploadedProductMediaId = productMedia.body.data.imageUrl.split('/').pop();
-    await request(app).get(productMedia.body.data.imageUrl).expect(200).expect('Content-Type', /image\/png/);
+    const imageResponse = await request(app).get(productMedia.body.data.imageUrl).expect(200).expect('Content-Type', /image\/png/);
+    expect(Buffer.isBuffer(imageResponse.body)).toBe(true);
+    expect([...imageResponse.body.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const created = await admin.post('/api/v1/products').send({
       name: `Integration Test ${unique}`,
       description: 'A temporary catalog product used to verify the complete production API workflow.',
-      category: `  ${categoryName}  `, price: 79, costPrice: 40, stock: 3,
+      category: `  ${categoryName}  `, subcategory: `  ${subcategoryName}  `, price: 79, costPrice: 40, stock: 3,
       imageUrl: productMedia.body.data.imageUrl, gallery: [], featured: false, isNewArrival: false, isManuallyUnavailable: false,
     }).expect(201);
     productId = created.body.data.product._id;
     expect(created.body.data.product.category).toBe(categoryName);
+    expect(created.body.data.product.subcategory).toBe(subcategoryName);
     expect(created.body.data.product.imageUrl).toContain('/api/v1/site/media/');
     const updated = await admin.put(`/api/v1/products/${productId}`).send({ ...created.body.data.product, price: 82, stock: 4 }).expect(200);
     expect(updated.body.data.product.price).toBe(82);
+    const filtered = await request(app).get('/api/v1/products').query({ category: categoryName, subcategory: subcategoryName }).expect(200);
+    expect(filtered.body.data.products.some((product) => product._id === productId)).toBe(true);
+    expect(filtered.body.data.categoryTree.find((item) => item.name === categoryName)?.subcategories).toContain(subcategoryName);
   });
 
   it('supports favorites, cart CRUD, checkout, and order tracking', async () => {
@@ -215,6 +226,7 @@ describe('Vellora API production flow', () => {
     if (offlineSaleId) { await OfflineSale.deleteOne({ _id: offlineSaleId }); offlineSaleId = undefined; }
     await admin.delete(`/api/v1/products/${productId}`).expect(200);
     productId = undefined;
+    if (subcategoryId) { await admin.delete(`/api/v1/admin/categories/${subcategoryId}`).expect(200); subcategoryId = undefined; }
     if (categoryId) { await admin.delete(`/api/v1/admin/categories/${categoryId}`).expect(200); categoryId = undefined; }
     await customer.post('/api/v1/auth/logout').send({}).expect(200);
     await customer.get('/api/v1/auth/me').expect(401);

@@ -1,4 +1,5 @@
 const Product = require('../models/product-model');
+const Category = require('../models/category-model');
 const Order = require('../models/order-model');
 const AppError = require('../utils/app-error');
 
@@ -14,16 +15,17 @@ function normalizeCatalogValue(value) {
 }
 
 function normalizeProductPayload(payload) {
-  return {
-    ...payload,
-    category: normalizeCatalogValue(payload.category),
-    collection: normalizeCatalogValue(payload.collection),
-  };
+  const normalized = { ...payload };
+  if (Object.hasOwn(payload, 'category')) normalized.category = normalizeCatalogValue(payload.category);
+  if (Object.hasOwn(payload, 'subcategory')) normalized.subcategory = normalizeCatalogValue(payload.subcategory) || undefined;
+  if (Object.hasOwn(payload, 'collection')) normalized.collection = normalizeCatalogValue(payload.collection);
+  return normalized;
 }
 
 async function getAllProducts(req, res) {
   const filter = {};
   if (req.query.category) filter.category = req.query.category.toLowerCase();
+  if (req.query.subcategory) filter.subcategory = req.query.subcategory.toLowerCase();
   if (req.query.collection) filter.collection = req.query.collection.toLowerCase();
   if (req.query.featured === 'true') filter.featured = true;
   if (req.query.isNewArrival === 'true') filter.isNewArrival = true;
@@ -38,7 +40,7 @@ async function getAllProducts(req, res) {
   }
   if (req.query.search?.trim()) {
     const escaped = req.query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    filter.$or = ['name', 'description', 'category', 'collection'].map((field) => ({
+    filter.$or = ['name', 'description', 'category', 'subcategory', 'collection'].map((field) => ({
       [field]: { $regex: escaped, $options: 'i' },
     }));
   }
@@ -46,17 +48,36 @@ async function getAllProducts(req, res) {
   const page = Math.max(Number(req.query.page) || 1, 1);
   const limit = Math.min(Math.max(Number(req.query.limit) || 12, 1), 48);
   const sort = SORTS[req.query.sort] || SORTS.newest;
-  const [products, total, categories, collections, priceBounds] = await Promise.all([
+  const [products, total, managedCategories, catalogPairs, collections, priceBounds] = await Promise.all([
     Product.find(filter).sort(sort).skip((page - 1) * limit).limit(limit).lean(),
     Product.countDocuments(filter),
-    Product.distinct('category'),
+    Category.find().select('name parent').lean(),
+    Product.aggregate([{ $group: { _id: { category: '$category', subcategory: '$subcategory' } } }]),
     Product.distinct('collection', { collection: { $nin: [null, ''] } }),
     Product.aggregate([{ $group: { _id: null, min: { $min: '$price' }, max: { $max: '$price' } } }]),
   ]);
 
+  const categoryMap = new Map();
+  const ensureCategory = (name) => {
+    const normalized = normalizeCatalogValue(name);
+    if (normalized && !categoryMap.has(normalized)) categoryMap.set(normalized, new Set());
+    return normalized;
+  };
+  for (const item of managedCategories) {
+    if (item.parent) {
+      const parent = ensureCategory(item.parent);
+      if (parent) categoryMap.get(parent).add(item.name);
+    } else ensureCategory(item.name);
+  }
+  for (const item of catalogPairs) {
+    const parent = ensureCategory(item._id.category);
+    if (parent && item._id.subcategory) categoryMap.get(parent).add(normalizeCatalogValue(item._id.subcategory));
+  }
+  const categoryTree = [...categoryMap.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([name, children]) => ({ name, subcategories: [...children].sort() }));
+
   res.status(200).json({
     status: 'success',
-    data: { products, categories: categories.sort(), collections: collections.sort(), priceBounds: priceBounds[0] || { min: 0, max: 1000 } },
+    data: { products, categories: categoryTree.map((item) => item.name), categoryTree, collections: collections.sort(), priceBounds: priceBounds[0] || { min: 0, max: 1000 } },
     pagination: { page, limit, total, pages: Math.ceil(total / limit) },
   });
 }
@@ -73,11 +94,12 @@ async function createProduct(req, res) {
 }
 
 async function updateProduct(req, res) {
-  const product = await Product.findByIdAndUpdate(req.params.id, normalizeProductPayload(req.body), {
-    returnDocument: 'after',
-    runValidators: true,
-  });
+  const product = await Product.findById(req.params.id);
   if (!product) throw new AppError('Product not found', 404);
+  const payload = normalizeProductPayload(req.body);
+  if (Object.hasOwn(req.body, 'category') && !Object.hasOwn(req.body, 'subcategory')) payload.subcategory = undefined;
+  Object.assign(product, payload);
+  await product.save();
   res.status(200).json({ status: 'success', message: 'Product updated', data: { product } });
 }
 
@@ -99,6 +121,7 @@ async function getRecommendations(req, res) {
     const priceDistance = Math.abs(candidate.price - product.price) / normalizedPrice;
     let score = (coPurchaseScore.get(String(candidate._id)) || 0) * 12;
     if (candidate.category === product.category) score += 8;
+    if (candidate.subcategory && candidate.subcategory === product.subcategory) score += 5;
     if (candidate.collection && candidate.collection === product.collection) score += 6;
     if (priceDistance <= 0.2) score += 4;
     else if (priceDistance <= 0.5) score += 2;
