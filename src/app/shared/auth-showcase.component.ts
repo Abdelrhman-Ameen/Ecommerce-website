@@ -10,15 +10,13 @@ import { TranslatePipe } from './translate.pipe';
   imports: [RouterLink, TranslatePipe],
   template: `
     <section class="auth-experience" [class.auth-experience-register]="variant === 'register'">
-      <video class="auth-film" autoplay muted loop playsinline preload="metadata" poster="/assets/home/fashion-hero-02.webp" aria-hidden="true">
-        <source src="/assets/auth/vellora-auth-film.mp4" type="video/mp4">
-      </video>
+      <img class="auth-film" src="/assets/home/fashion-hero-03.webp" alt="" fetchpriority="high" aria-hidden="true">
       <div class="auth-film-shade" aria-hidden="true"></div>
       <div class="auth-film-grain" aria-hidden="true"></div>
 
       <header class="auth-campaign-header">
         <a class="auth-campaign-brand" routerLink="/" aria-label="Vellora home">
-          <span aria-hidden="true">V</span>
+          <span class="brand-logo-crop" aria-hidden="true"><img src="/assets/brand/vellora-logo.png" alt=""></span>
           <strong>VELLORA</strong>
         </a>
         <div class="auth-campaign-actions">

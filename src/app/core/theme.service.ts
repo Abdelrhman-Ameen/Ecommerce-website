@@ -19,7 +19,7 @@ export class ThemeService {
   private initialTheme(): AppTheme {
     const saved = localStorage.getItem('ma3rad-theme');
     if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return 'dark';
   }
 
   private apply(theme: AppTheme): void {
