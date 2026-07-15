@@ -457,6 +457,22 @@ const ARABIC: Record<string, string> = {
   'Add': 'أضف',
   'more for free delivery.': 'إضافية للحصول على توصيل مجاني.',
   'Delivery available': 'التوصيل متاح',
+  'View collection': 'عرض المجموعة',
+  'VELLORA PRIVATE EDIT': 'اختيارات VELLORA الخاصة',
+  'WEAR YOUR': 'ارتدي',
+  'CONFIDENCE': 'ثقتك',
+  'A considered space for your saved pieces, orders, and next signature look.': 'مساحتك الخاصة للقطع المحفوظة والطلبات وإطلالتك المميزة القادمة.',
+  'Secure access': 'دخول آمن',
+  'Faster checkout': 'شراء أسرع',
+  'Saved favorites': 'مفضلات محفوظة',
+  'MEMBER ACCESS': 'دخول الأعضاء',
+  'NEW MEMBERSHIP': 'عضوية جديدة',
+  '01 / MEMBER ACCESS': '01 / دخول الأعضاء',
+  '02 / NEW MEMBERSHIP': '02 / عضوية جديدة',
+  'Welcome back': 'مرحباً بعودتك',
+  'Enter your details to continue your Vellora edit.': 'أدخل بياناتك لمتابعة اختياراتك في Vellora.',
+  'Create your account': 'أنشئ حسابك',
+  'Save the pieces you love and move through checkout with ease.': 'احفظ القطع التي تحبها وأكمل الشراء بسهولة.',
 };
 
 @Injectable({ providedIn: 'root' })
