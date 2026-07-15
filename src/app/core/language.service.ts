@@ -153,6 +153,8 @@ const ARABIC: Record<string, string> = {
   'Enable dark mode': 'تفعيل الوضع الداكن',
   'Enable light mode': 'تفعيل الوضع الفاتح',
   'Filters': 'عوامل التصفية',
+  'Open filters': 'فتح عوامل التصفية',
+  'Close filters': 'إغلاق عوامل التصفية',
   'active': 'نشط',
   'Clear': 'مسح',
   'Collections': 'المجموعات',

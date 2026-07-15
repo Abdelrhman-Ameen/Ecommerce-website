@@ -22,10 +22,9 @@ import { TranslatePipe } from './translate.pipe';
       <div class="p-3 p-lg-4">
         <div class="product-eyebrow">{{ product.category | titlecase }}</div>
         <a class="product-title" [routerLink]="['/products', product._id]">{{ product.name }}</a>
-        <div class="d-flex align-items-end justify-content-between gap-2 mt-3">
-          <div>
-            <strong class="product-price">{{ product.price | currency }}</strong>
-            @if (product.oldPrice) { <span class="old-price ms-2">{{ product.oldPrice | currency }}</span> }
+        <div class="product-card-purchase d-flex align-items-end justify-content-between gap-2 mt-3">
+          <div class="product-card-pricing">
+            <div class="product-price-line"><strong class="product-price">{{ product.price | currency }}</strong>@if (product.oldPrice) { <span class="old-price">{{ product.oldPrice | currency }}</span> }</div>
             <small class="stock-label d-block" [class.low-stock]="product.stock <= 5 || product.isManuallyUnavailable">{{ available() ? (product.stock + ' ' + ('in stock' | translate)) : ('Out of stock' | translate) }}</small>
           </div>
           <button class="btn btn-ink btn-icon cart-add-button" type="button" [disabled]="!available() || adding() || cart.quantityFor(product._id) >= product.stock" (click)="addToCart()" [attr.aria-label]="('Add to cart' | translate) + '. ' + cart.quantityFor(product._id) + ' in cart'">
