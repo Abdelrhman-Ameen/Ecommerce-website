@@ -5,6 +5,7 @@ const offlineSales = require('../controllers/offline-sales-controllers');
 const homepage = require('../controllers/homepage-controllers');
 const categories = require('../controllers/category-controllers');
 const support = require('../controllers/support-controllers');
+const orders = require('../controllers/order-controllers');
 const authenticate = require('../middleware/authenticate-middleware');
 const authorize = require('../middleware/authorize-middleware');
 const validate = require('../middleware/validate-middleware');
@@ -12,6 +13,12 @@ const validate = require('../middleware/validate-middleware');
 const router = express.Router();
 router.use(authenticate, authorize('admin'));
 router.get('/dashboard', controller.getDashboard);
+router.get('/delivery-settings', orders.getDeliverySettings);
+router.put('/delivery-settings', [
+  body('deliveryFee').isFloat({ min: 0, max: 100000 }).toFloat(),
+  body('freeShippingThreshold').optional({ nullable: true, values: 'falsy' }).isFloat({ min: 1, max: 10000000 }).toFloat(),
+  validate,
+], orders.updateDeliverySettings);
 router.get('/users', controller.getUsers);
 const managedImage = (value) => typeof value === 'string' && (/^\/assets\//.test(value) || /^\/api\/v1\/site\/media\/[a-f0-9]{24}$/i.test(value) || /^https:\/\//i.test(value));
 router.get('/homepage-settings', homepage.getHomepage);
@@ -33,7 +40,7 @@ router.post('/product-media', body('dataUrl').isString().isLength({ min: 100, ma
 router.get('/categories', categories.getCategories);
 router.post('/categories', body('name').trim().isLength({ min: 2, max: 50 }), body('parent').optional({ checkFalsy: true }).trim().isLength({ min: 2, max: 50 }), validate, categories.createCategory);
 router.delete('/categories/:id', param('id').isMongoId(), validate, categories.deleteCategory);
-router.get('/support', query('status').optional().isIn(['all', 'open', 'in_progress', 'resolved']), validate, support.getAdminSupport);
+router.get('/support', query('status').optional().isIn(['all', 'open', 'in_progress', 'waiting_admin', 'waiting_customer', 'resolved']), validate, support.getAdminSupport);
 router.put('/support/settings', [
   body('email').trim().isEmail().normalizeEmail().isLength({ max: 160 }),
   body('phone').trim().isLength({ min: 5, max: 30 }),
@@ -42,10 +49,14 @@ router.put('/support/settings', [
 ], support.updateSettings);
 router.patch('/support/tickets/:id', [
   param('id').isMongoId(),
-  body('status').isIn(['open', 'in_progress', 'resolved']),
-  body('adminNote').optional({ values: 'falsy' }).trim().isLength({ max: 2000 }),
+  body('status').isIn(['open', 'in_progress', 'waiting_admin', 'waiting_customer', 'resolved']),
   validate,
 ], support.updateTicket);
+router.post('/support/tickets/:id/messages', [
+  param('id').isMongoId(),
+  body('message').trim().isLength({ min: 1, max: 3000 }),
+  validate,
+], support.addAdminMessage);
 router.get('/offline-sales', query('limit').optional().isInt({ min: 1, max: 250 }), validate, offlineSales.getOfflineSales);
 router.post('/offline-sales', [
   body('customerName').optional({ values: 'falsy' }).trim().isLength({ min: 2, max: 100 }),

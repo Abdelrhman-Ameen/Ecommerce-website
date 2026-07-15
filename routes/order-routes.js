@@ -8,6 +8,8 @@ const validate = require('../middleware/validate-middleware');
 const router = express.Router();
 router.use(authenticate);
 
+router.get('/delivery-settings', controller.getDeliverySettings);
+
 router.post('/', [
   body('shippingAddress.fullName').trim().isLength({ min: 3, max: 100 }).withMessage('Full name is required'),
   body('shippingAddress.email').trim().isEmail().normalizeEmail().withMessage('Enter a valid email'),

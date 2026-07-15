@@ -19,4 +19,5 @@ export class SupportService {
   contact(): Observable<SupportSettings> { return this.http.get<ApiResponse<{ settings: SupportSettings }>>(`${this.api}/contact`).pipe(map((response) => response.data.settings)); }
   createTicket(payload: SupportTicketPayload): Observable<SupportTicket> { return this.http.post<ApiResponse<{ ticket: SupportTicket }>>(`${this.api}/tickets`, payload).pipe(map((response) => response.data.ticket)); }
   myTickets(): Observable<SupportTicket[]> { return this.http.get<ApiResponse<{ tickets: SupportTicket[] }>>(`${this.api}/my-tickets`).pipe(map((response) => response.data.tickets)); }
+  reply(id: string, message: string): Observable<SupportTicket> { return this.http.post<ApiResponse<{ ticket: SupportTicket }>>(`${this.api}/tickets/${id}/messages`, { message }).pipe(map((response) => response.data.ticket)); }
 }

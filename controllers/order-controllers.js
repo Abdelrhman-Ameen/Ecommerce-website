@@ -2,7 +2,32 @@ const mongoose = require('mongoose');
 const Cart = require('../models/cart-model');
 const Order = require('../models/order-model');
 const Product = require('../models/product-model');
+const DeliverySetting = require('../models/delivery-setting-model');
 const AppError = require('../utils/app-error');
+
+const DEFAULT_DELIVERY_SETTINGS = { deliveryFee: 25, freeShippingThreshold: 2000 };
+
+async function deliverySettings(session) {
+  const query = DeliverySetting.findOne({ key: 'delivery' }).lean();
+  if (session) query.session(session);
+  const settings = await query;
+  return settings || DEFAULT_DELIVERY_SETTINGS;
+}
+
+async function getDeliverySettings(req, res) {
+  const settings = await deliverySettings();
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(200).json({ status: 'success', data: { settings } });
+}
+
+async function updateDeliverySettings(req, res) {
+  const settings = await DeliverySetting.findOneAndUpdate(
+    { key: 'delivery' },
+    { key: 'delivery', deliveryFee: req.body.deliveryFee, freeShippingThreshold: req.body.freeShippingThreshold || null, updatedBy: req.userId },
+    { upsert: true, returnDocument: 'after', runValidators: true },
+  );
+  res.status(200).json({ status: 'success', message: 'Delivery pricing saved', data: { settings } });
+}
 
 async function createOrder(req, res) {
   const session = await mongoose.startSession();
@@ -35,7 +60,9 @@ async function createOrder(req, res) {
         });
       }
 
-      const shippingPrice = subtotal >= 500 ? 0 : 25;
+      const settings = await deliverySettings(session);
+      const qualifiesForFreeShipping = settings.freeShippingThreshold && subtotal >= settings.freeShippingThreshold;
+      const shippingPrice = qualifiesForFreeShipping ? 0 : settings.deliveryFee;
       [createdOrder] = await Order.create([{
         user: req.userId,
         items,
@@ -87,4 +114,4 @@ async function updateOrderStatus(req, res) {
   res.status(200).json({ status: 'success', message: 'Order status updated', data: { order } });
 }
 
-module.exports = { createOrder, getMyOrders, getOrderById, getAllOrders, updateOrderStatus };
+module.exports = { createOrder, getDeliverySettings, updateDeliverySettings, getMyOrders, getOrderById, getAllOrders, updateOrderStatus };
