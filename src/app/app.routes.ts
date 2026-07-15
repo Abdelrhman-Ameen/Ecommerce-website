@@ -8,7 +8,7 @@ export const routes: Routes = [
     path: '',
     component: StoreLayoutComponent,
     children: [
-      { path: '', pathMatch: 'full', title: 'Ma3rad El Gamila — Curated modern essentials', loadComponent: () => import('./pages/home.component').then((m) => m.HomeComponent) },
+      { path: '', pathMatch: 'full', title: 'Wear Your Confidence — Ma3rad El Gamila', loadComponent: () => import('./pages/home.component').then((m) => m.HomeComponent) },
       { path: 'products', title: 'Products — Ma3rad El Gamila', loadComponent: () => import('./pages/catalog.component').then((m) => m.CatalogComponent) },
       { path: 'products/:id', title: 'Product details — Ma3rad El Gamila', loadComponent: () => import('./pages/product-detail.component').then((m) => m.ProductDetailComponent) },
       { path: 'account', canActivate: [authGuard], title: 'My account — Ma3rad El Gamila', loadComponent: () => import('./pages/account.component').then((m) => m.AccountComponent) },
@@ -28,6 +28,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', title: 'Admin dashboard — Ma3rad El Gamila', loadComponent: () => import('./pages/admin-dashboard.component').then((m) => m.AdminDashboardComponent) },
       { path: 'products', title: 'Manage products — Ma3rad El Gamila', loadComponent: () => import('./pages/admin-products.component').then((m) => m.AdminProductsComponent) },
       { path: 'orders', title: 'Manage orders — Ma3rad El Gamila', loadComponent: () => import('./pages/admin-orders.component').then((m) => m.AdminOrdersComponent) },
+      { path: 'offline-sales', title: 'Store sales & debts — Ma3rad El Gamila', loadComponent: () => import('./pages/admin-offline-sales.component').then((m) => m.AdminOfflineSalesComponent) },
       { path: 'customers', title: 'Customers — Ma3rad El Gamila', loadComponent: () => import('./pages/admin-customers.component').then((m) => m.AdminCustomersComponent) },
     ],
   },

@@ -59,6 +59,47 @@ export interface Order {
   createdAt: string;
 }
 
+export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'mobile_wallet' | 'other';
+
+export interface OfflinePayment {
+  _id: string;
+  amount: number;
+  method: PaymentMethod;
+  paidAt: string;
+  note?: string;
+}
+
+export interface OfflineSale {
+  _id: string;
+  customerName: string;
+  customerKey: string;
+  phone?: string;
+  product: string;
+  productName: string;
+  imageUrl: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+  amountPaid: number;
+  balanceDue: number;
+  paymentStatus: 'paid' | 'partial' | 'debt';
+  saleDate: string;
+  payments: OfflinePayment[];
+  note?: string;
+  createdAt: string;
+}
+
+export interface OfflineDebtor {
+  _id: string;
+  customerName: string;
+  phone?: string;
+  totalSales?: number;
+  totalPaid?: number;
+  balanceDue: number;
+  saleCount?: number;
+  lastActivityAt: string;
+}
+
 export interface ApiResponse<T> {
   status: string;
   message?: string;

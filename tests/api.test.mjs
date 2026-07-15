@@ -10,6 +10,7 @@ const User = require('../models/user-model');
 const Product = require('../models/product-model');
 const Cart = require('../models/cart-model');
 const Order = require('../models/order-model');
+const OfflineSale = require('../models/offline-sale-model');
 
 describe('Ma3rad El Gamila API production flow', () => {
   const unique = Date.now();
@@ -20,6 +21,7 @@ describe('Ma3rad El Gamila API production flow', () => {
   let userId;
   let productId;
   let orderId;
+  let offlineSaleId;
 
   beforeAll(async () => { await connectDatabase(); });
 
@@ -27,6 +29,7 @@ describe('Ma3rad El Gamila API production flow', () => {
     if (userId) {
       await Promise.all([Cart.deleteMany({ user: userId }), Order.deleteMany({ user: userId }), User.deleteOne({ _id: userId })]);
     }
+    await OfflineSale.deleteMany({ customerName: `Integration Debt ${unique}` });
     await Product.deleteMany({ name: new RegExp(`Integration Test ${unique}`) });
     await mongoose.disconnect();
   });
@@ -82,14 +85,46 @@ describe('Ma3rad El Gamila API production flow', () => {
     const recommendations = await request(app).get(`/api/v1/products/${productId}/recommendations`).expect(200);
     expect(Array.isArray(recommendations.body.data.products)).toBe(true);
     const dashboard = await admin.get('/api/v1/admin/dashboard').expect(200);
-    expect(dashboard.body.data).toHaveProperty('grossProfit');
+    expect(dashboard.body.data).not.toHaveProperty('grossProfit');
+    expect(dashboard.body.data).toHaveProperty('offlineRevenue');
     expect(dashboard.body.data).toHaveProperty('monthlySales');
     await admin.patch(`/api/v1/products/${productId}`).send({ isManuallyUnavailable: true }).expect(200);
     await customer.post('/api/v1/cart').send({ productId, quantity: 1 }).expect(409);
     await admin.patch(`/api/v1/products/${productId}`).send({ isManuallyUnavailable: false }).expect(200);
   });
 
+  it('records an offline sale and clears its dated customer debt', async () => {
+    const created = await admin.post('/api/v1/admin/offline-sales').send({
+      customerName: `Integration Debt ${unique}`,
+      phone: '+201000000088',
+      productId,
+      quantity: 1,
+      unitPrice: 60,
+      amountPaid: 20,
+      paymentMethod: 'card',
+      saleDate: new Date().toISOString(),
+    }).expect(201);
+    offlineSaleId = created.body.data.sale._id;
+    expect(created.body.data.sale.paymentStatus).toBe('partial');
+    expect(created.body.data.sale.balanceDue).toBe(40);
+
+    const ledger = await admin.get('/api/v1/admin/offline-sales').expect(200);
+    expect(ledger.body.data.debtors.some((item) => item.customerName === `Integration Debt ${unique}` && item.balanceDue === 40)).toBe(true);
+
+    const payment = await admin.patch(`/api/v1/admin/offline-sales/${offlineSaleId}/payments`).send({
+      amount: 40,
+      method: 'cash',
+      paidAt: new Date().toISOString(),
+    }).expect(200);
+    expect(payment.body.data.sale.paymentStatus).toBe('paid');
+    expect(payment.body.data.sale.balanceDue).toBe(0);
+
+    const dashboard = await admin.get('/api/v1/admin/dashboard').expect(200);
+    expect(dashboard.body.data.offlineRevenue).toBeGreaterThanOrEqual(60);
+  });
+
   it('deletes the temporary product and clears sessions', async () => {
+    if (offlineSaleId) { await OfflineSale.deleteOne({ _id: offlineSaleId }); offlineSaleId = undefined; }
     await admin.delete(`/api/v1/products/${productId}`).expect(200);
     productId = undefined;
     await customer.post('/api/v1/auth/logout').send({}).expect(200);

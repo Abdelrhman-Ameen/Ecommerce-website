@@ -12,7 +12,7 @@ import { TranslatePipe } from '../shared/translate.pipe';
   standalone: true,
   imports: [ProductCardComponent, TitleCasePipe, TranslatePipe, FormsModule],
   template: `
-    <section class="catalog-hero"><div class="container-xxl px-4"><div class="eyebrow">{{ 'Studio catalog' | translate }}</div><h1>{{ 'All products' | translate }}</h1><p>{{ 'Discover objects selected to bring clarity, character, and lasting usefulness to everyday spaces.' | translate }}</p></div></section>
+    <section class="catalog-hero"><div class="container-xxl px-4"><div class="eyebrow">{{ 'Wear Your Confidence' | translate }}</div><h1>{{ 'All products' | translate }}</h1><p>{{ 'Browse the complete collection and filter by category, availability, or price.' | translate }}</p></div></section>
     <section class="catalog-section"><div class="container-xxl px-4"><div class="row g-5">
       <aside class="col-lg-3 catalog-sidebar" aria-label="Product filters">
         <div class="filter-heading"><div><h2>{{ 'Filters' | translate }}</h2><small>{{ activeFilterCount() }} {{ 'active' | translate }}</small></div><button type="button" (click)="clearFilters()">{{ 'Clear' | translate }}</button></div>

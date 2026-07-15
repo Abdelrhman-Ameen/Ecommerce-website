@@ -26,7 +26,7 @@ import { ThemeService } from '../core/theme.service';
             </ul>
             <form class="header-search mx-lg-auto my-3 my-lg-0" role="search" (submit)="searchProducts($event)">
               <button class="search-submit" type="submit" [attr.aria-label]="'Search products' | translate"><i class="bi bi-search"></i></button>
-              <input type="search" aria-label="Search products" [placeholder]="'Search studio catalog...' | translate" [value]="search()" (input)="setSearch($event)">
+              <input type="search" aria-label="Search products" [placeholder]="'Search products...' | translate" [value]="search()" (input)="setSearch($event)">
             </form>
             <div class="header-actions ms-lg-3">
               <button class="theme-switch" type="button" (click)="theme.toggle()" [attr.aria-label]="(theme.theme() === 'light' ? 'Enable dark mode' : 'Enable light mode') | translate"><i class="bi" [class.bi-moon-stars]="theme.theme() === 'light'" [class.bi-sun]="theme.theme() === 'dark'"></i></button>
