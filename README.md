@@ -1,140 +1,55 @@
 # LuxeStudio
 
-This is the backend for my NTI MEAN Stack final project.
+LuxeStudio is a production-oriented bilingual MEAN stack e-commerce platform based on the supplied Figma experience. It combines an Angular + Bootstrap storefront with an Express API and MongoDB Atlas.
 
-The project is an e-commerce website for studio products. It also has image tools that check the uploaded photo quality and remove its background.
+## Release features
 
-## Current status
+- Responsive storefront, catalog search/filtering, product details, cart, checkout, and order history
+- Register, login, logout, and persistent HTTP-only cookie sessions
+- Customer and admin role authorization with Angular route guards and server-side enforcement
+- Admin dashboard, product CRUD, order management, customer overview, revenue, and low-stock metrics
+- Frontend and backend validation, centralized API errors, rate limiting, security headers, loading states, and toast feedback
+- Production build and a Vercel-compatible single-origin deployment
+- English and Arabic localization with automatic RTL layout
+- Defensive routing with guarded account/admin areas and a custom animated fashion 404 experience
 
-The current version runs locally while the project is still under development. After the project is finished, it will be deployed on a Vercel server using the free hosting plan.
+The former AI/image-processing endpoints and local upload storage are intentionally not part of this release. Vercel functions do not provide durable local file storage, so catalog photography is bundled under `public/assets` and product CRUD accepts a validated asset path or HTTPS URL.
 
-## Technologies
+## Local setup
 
-- Node.js and Express
-- MongoDB and Mongoose
-- JWT for authentication
-- Multer for uploading images
-- Sharp for checking image quality
-- IMG.LY background removal
+1. Copy `.env.example` to `.env` and set `MONGO_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
+2. Install dependencies with `npm install`.
+3. Seed the catalog and initial accounts with `npm run seed`.
+4. Start the Angular app and Express API together with `npm run dev`.
+5. Open `http://localhost:4200`.
 
-## Project structure
-
-I followed the same structure used during the backend sessions:
-
-- `models` contains the Mongoose schemas.
-- `controllers` contains the logic for each request.
-- `routes` contains the API endpoints.
-- `middleware` contains authentication, authorization, and Multer.
-- `config` contains the database connection.
-- `utils` contains small shared functions.
-
-## Main features
-
-- Sign up and sign in
-- Customer and admin roles
-- Add, edit, delete, and display products
-- Search, filter, sort, and paginate products
-- Add products to favorites
-- Add, update, and remove cart items
-- Create orders and follow their status
-- Show product, order, customer, revenue, and low-stock data on the admin dashboard
-- Check image resolution, lighting, and noise
-- Remove the image background and save it as PNG
-- Process an image from the admin page and attach it directly to a product
-
-## Running the project
-
-Install the packages:
-
-```bash
-npm install
-```
-
-Create a `.env` file:
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection
-JWT_SECRET=your_secret_key
-JWT_EXPIRES_IN=7d
-CLIENT_URL=http://localhost:4200
-```
-
-Start the server:
+## Commands
 
 ```bash
 npm run dev
-```
-
-To add the sample admin, customer, products, cart, and order to MongoDB, run:
-
-```bash
+npm run build
+npm test
 npm run seed
+npm run check:server
 ```
 
-The seed command clears the existing LuxeStudio sample collections before adding the new data. The sample login accounts are:
+## Frontend architecture
 
-```text
-Admin:    admin@luxestudio.com / Admin12345
-Customer: customer@luxestudio.com / Customer12345
-```
+- Standalone, lazy-loaded Angular pages with shared storefront and admin layouts
+- Signals and computed state for lightweight UI state; RxJS for HTTP and route streams
+- Reactive Forms for validated register, login, checkout, profile, password, and admin CRUD workflows
+- Interpolation, property/attribute binding, event binding, conditional class/style binding, reusable component input binding, and focused two-way binding for the catalog search draft
+- Route guards for guest, customer, and admin flows, exact default routes, an explicit `/404`, and a wildcard fallback
+- Runtime English/Arabic localization with persisted language choice and document-level LTR/RTL direction
 
-The API runs on `http://localhost:5000/api/v1`.
+## API
 
-## API routes
+The JSON API is served from `/api/v1`. Authentication uses a secure `HttpOnly` cookie. Major routes include:
 
-Authentication:
+- `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
+- `GET /products`, `GET /products/:id`, plus admin product create/update/delete
+- cart read/create/update/delete routes under `/cart`
+- customer checkout and order history under `/orders`
+- admin metrics and customer listing under `/admin`
 
-```text
-POST  /auth/signup
-POST  /auth/signin
-GET   /auth/me
-PATCH /auth/favorites/:productId
-```
-
-Products:
-
-```text
-GET    /products
-GET    /products/:id
-POST   /products
-PATCH  /products/:id
-DELETE /products/:id
-```
-
-Cart and orders:
-
-```text
-GET    /cart
-POST   /cart
-PATCH  /cart/:productId
-DELETE /cart/:productId
-POST   /orders
-GET    /orders/my-orders
-GET    /orders/:id
-```
-
-Image processing:
-
-```text
-POST /images/analyze
-POST /images/remove-background
-POST /images/products/:productId/process
-```
-
-Admin:
-
-```text
-GET /admin/dashboard
-GET /admin/users
-```
-
-Protected routes need the token in the request header:
-
-```text
-Authorization: Bearer TOKEN
-```
-
-Images are sent as `multipart/form-data` using a field named `image`.
-
-The image-quality check uses the photo dimensions, average brightness, and the difference between neighboring grayscale pixels. The background-removal model then produces a transparent PNG if the uploaded image quality is acceptable.
+Never commit `.env`. Rotate any database credential that has been shared outside a password manager.

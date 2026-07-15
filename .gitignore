@@ -1,14 +1,27 @@
+# Dependencies and build output
 node_modules/
+dist/
+tmp/
+out-tsc/
+.angular/
+coverage/
+
+# Secrets and deployment state
 .env
+.env.*
+!.env.example
+.vercel/
+
+# Runtime uploads and logs
 uploads/*
 !uploads/.gitkeep
-!uploads/products/
-uploads/products/*
-!uploads/products/.gitkeep
-!uploads/users/
-uploads/users/*
-!uploads/users/.gitkeep
-!uploads/processed/
-uploads/processed/*
-!uploads/processed/.gitkeep
 npm-debug.log*
+*.log
+
+# Editors and operating systems
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

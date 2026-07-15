@@ -1,83 +1,72 @@
-const Product = require("../models/product-model");
-const deleteUploadedFile = require("../utils/delete-uploaded-file");
+const Product = require('../models/product-model');
+const AppError = require('../utils/app-error');
 
-const getAllProducts = async (req, res) => {
-  try {
-    const queryObject = { ...req.query };
-    ["sort", "page", "limit", "search"].forEach((field) => delete queryObject[field]);
-    const mongoQuery = convertQuery(queryObject);
-    if (req.query.search) {
-      mongoQuery.$or = ["name", "description", "category"].map((field) => ({ [field]: { $regex: req.query.search, $options: "i" } }));
-    }
-    const page = Math.max(Number(req.query.page) || 1, 1);
-    const limit = Math.min(Math.max(Number(req.query.limit) || 12, 1), 50);
-    const products = await Product.find(mongoQuery)
-      .sort(req.query.sort || "-createdAt")
-      .skip((page - 1) * limit)
-      .limit(limit);
-    const total = await Product.countDocuments(mongoQuery);
-    res.status(200).json({ status: "success", count: products.length, total, page, pages: Math.ceil(total / limit), data: { products } });
-  } catch (error) {
-    res.status(400).json({ status: "error", message: error.message });
+const SORTS = {
+  newest: '-createdAt',
+  priceAsc: 'price',
+  priceDesc: '-price',
+  rating: '-rating',
+  name: 'name',
+};
+
+async function getAllProducts(req, res) {
+  const filter = {};
+  if (req.query.category) filter.category = req.query.category.toLowerCase();
+  if (req.query.featured === 'true') filter.featured = true;
+  if (req.query.isNewArrival === 'true') filter.isNewArrival = true;
+  if (req.query.inStock === 'true') filter.stock = { $gt: 0 };
+  if (req.query.minPrice || req.query.maxPrice) {
+    filter.price = {};
+    if (req.query.minPrice) filter.price.$gte = Number(req.query.minPrice);
+    if (req.query.maxPrice) filter.price.$lte = Number(req.query.maxPrice);
   }
-};
-
-const getProductById = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ status: "fail", message: "Product not found" });
-    res.status(200).json({ status: "success", data: { product } });
-  } catch (error) { res.status(400).json({ status: "error", message: error.message }); }
-};
-
-const createProduct = async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ status: "fail", message: "Product image is required" });
-    const product = await Product.create({ ...req.body, imageUrl: req.file.filename });
-    res.status(201).json({ status: "success", message: "Product added successfully", data: { product } });
-  } catch (error) {
-    if (req.file) deleteUploadedFile("products", req.file.filename);
-    res.status(400).json({ status: "error", message: error.message });
+  if (req.query.search?.trim()) {
+    const escaped = req.query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filter.$or = ['name', 'description', 'category', 'collection'].map((field) => ({
+      [field]: { $regex: escaped, $options: 'i' },
+    }));
   }
-};
 
-const updateProduct = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ status: "fail", message: "Product not found" });
-    if (req.file) {
-      deleteUploadedFile("products", product.imageUrl);
-      req.body.imageUrl = req.file.filename;
-    }
-    Object.assign(product, req.body);
-    await product.save();
-    res.status(200).json({ status: "success", message: "Product updated successfully", data: { product } });
-  } catch (error) {
-    if (req.file) deleteUploadedFile("products", req.file.filename);
-    res.status(400).json({ status: "error", message: error.message });
-  }
-};
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 12, 1), 48);
+  const sort = SORTS[req.query.sort] || SORTS.newest;
+  const [products, total, categories] = await Promise.all([
+    Product.find(filter).sort(sort).skip((page - 1) * limit).limit(limit).lean(),
+    Product.countDocuments(filter),
+    Product.distinct('category'),
+  ]);
 
-const deleteProduct = async (req, res) => {
-  try {
-    const product = await Product.findByIdAndDelete(req.params.id);
-    if (!product) return res.status(404).json({ status: "fail", message: "Product not found" });
-    deleteUploadedFile("products", product.imageUrl);
-    res.status(200).json({ status: "success", message: "Product deleted successfully" });
-  } catch (error) { res.status(400).json({ status: "error", message: error.message }); }
-};
+  res.status(200).json({
+    status: 'success',
+    data: { products, categories },
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  });
+}
 
-function convertQuery(query) {
-  const mongoQuery = {};
-  for (const key in query) {
-    const match = key.match(/^(.+)\[(gte|gt|lte|lt)\]$/);
-    if (match) {
-      mongoQuery[match[1]] = mongoQuery[match[1]] || {};
-      mongoQuery[match[1]][`$${match[2]}`] = Number(query[key]);
-    } else if (["featured", "isNewArrival"].includes(key)) mongoQuery[key] = query[key] === "true";
-    else mongoQuery[key] = { $regex: query[key], $options: "i" };
-  }
-  return mongoQuery;
+async function getProductById(req, res) {
+  const product = await Product.findById(req.params.id);
+  if (!product) throw new AppError('Product not found', 404);
+  res.status(200).json({ status: 'success', data: { product } });
+}
+
+async function createProduct(req, res) {
+  const product = await Product.create(req.body);
+  res.status(201).json({ status: 'success', message: 'Product created', data: { product } });
+}
+
+async function updateProduct(req, res) {
+  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    returnDocument: 'after',
+    runValidators: true,
+  });
+  if (!product) throw new AppError('Product not found', 404);
+  res.status(200).json({ status: 'success', message: 'Product updated', data: { product } });
+}
+
+async function deleteProduct(req, res) {
+  const product = await Product.findByIdAndDelete(req.params.id);
+  if (!product) throw new AppError('Product not found', 404);
+  res.status(200).json({ status: 'success', message: 'Product deleted' });
 }
 
 module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct };
