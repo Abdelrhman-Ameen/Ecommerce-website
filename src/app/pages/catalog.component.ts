@@ -67,6 +67,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
   readonly activeFilterCount = computed(() => [this.category(), this.subcategory(), this.minPrice() > 0, this.maxPrice() < this.catalogMax(), this.inStock(), this.featured(), this.newOnly()].filter(Boolean).length);
   searchDraft = '';
   private querySubscription?: Subscription;
+  private fetchSubscription?: Subscription;
 
   constructor(private productsApi: ProductService, private route: ActivatedRoute, private router: Router) {}
 
@@ -88,11 +89,12 @@ export class CatalogComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void { this.querySubscription?.unsubscribe(); }
+  ngOnDestroy(): void { this.querySubscription?.unsubscribe(); this.fetchSubscription?.unsubscribe(); }
 
   fetch(append: boolean): void {
+    this.fetchSubscription?.unsubscribe();
     if (!append) this.loading.set(true); else this.loadingMore.set(true);
-    this.productsApi.list({ search: this.search(), category: this.category(), subcategory: this.subcategory(), sort: this.sort(), inStock: this.inStock(), featured: this.featured(), minPrice: this.minPrice() || undefined, maxPrice: this.maxPrice() < this.catalogMax() ? this.maxPrice() : undefined, isNewArrival: this.newOnly(), page: this.page(), limit: 12 }).subscribe({
+    this.fetchSubscription = this.productsApi.list({ search: this.search(), category: this.category(), subcategory: this.subcategory(), sort: this.sort(), inStock: this.inStock(), featured: this.featured(), minPrice: this.minPrice() || undefined, maxPrice: this.maxPrice() < this.catalogMax() ? this.maxPrice() : undefined, isNewArrival: this.newOnly(), page: this.page(), limit: 12 }).subscribe({
       next: (response) => {
         this.products.set(append ? [...this.products(), ...response.data.products] : response.data.products);
         this.categoryTree.set(response.data.categoryTree || (response.data.categories || []).map((name) => ({ name, subcategories: [] })));

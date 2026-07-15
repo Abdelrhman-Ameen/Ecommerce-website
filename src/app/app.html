@@ -1,2 +1,20 @@
+@if (initialLoading()) {
+  <div class="vellora-loader" [class.is-leaving]="loaderLeaving()" role="status" aria-live="polite" aria-label="Vellora is preparing the storefront">
+    <div class="loader-grain" aria-hidden="true"></div>
+    <div class="loader-index" aria-hidden="true"><span>VELLORA</span><span>EST. 2026</span></div>
+    <div class="loader-stage">
+      <div class="loader-orbit" aria-hidden="true">
+        <span class="loader-orbit-line"></span>
+        <span class="loader-orbit-dot"></span>
+        <strong>V</strong>
+      </div>
+      <div class="loader-wordmark" aria-hidden="true"><span>VEL</span><span>LORA</span></div>
+      <p>Wear Your Confidence</p>
+      <div class="loader-progress" aria-hidden="true"><span></span></div>
+      <small>Preparing the edit</small>
+    </div>
+    <div class="loader-count" aria-hidden="true">01 <span>/</span> 01</div>
+  </div>
+}
 <app-toast-stack />
 <router-outlet />

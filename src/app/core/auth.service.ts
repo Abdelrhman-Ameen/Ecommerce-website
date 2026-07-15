@@ -52,6 +52,11 @@ export class AuthService {
     );
   }
 
+  invalidateSession(): void {
+    this.user.set(null);
+    this.loaded.set(true);
+  }
+
   toggleFavorite(productId: string): Observable<string[]> {
     return this.http.patch<ApiResponse<{ favorites: string[] }>>(`${this.api}/favorites/${productId}`, {}).pipe(
       map((response) => response.data.favorites),

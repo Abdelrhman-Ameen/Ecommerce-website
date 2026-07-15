@@ -12,17 +12,17 @@ const fashion = (name, subcategory, price, stock, image, description, extras = {
 });
 
 const products = [
-  fashion('Burgundy Bloom Evening Gown', 'dresses', 4200, 6, 'fashion-01', 'A sweeping occasion gown with dimensional floral appliqué, a sculpted bodice, and a dramatic sheer train.', { oldPrice: 4800, featured: true, isNewArrival: true }),
-  fashion('Crimson Draped Mini Dress', 'dresses', 2900, 9, 'fashion-02', 'A confident asymmetric mini dress cut in fluid crimson jersey with a high neckline and floor-skimming draped panel.', { featured: true }),
-  fashion('Ivory Belted Shirt Dress', 'dresses', 2450, 13, 'fashion-03', 'A lightweight ivory shirt dress with a softly tailored collar, tonal waist tie, and an easy sunlit silhouette.', { isNewArrival: true }),
-  fashion('Gallery Pleat Cocktail Dress', 'dresses', 3100, 5, 'fashion-04', 'An architectural cocktail dress inspired by gallery tailoring, balancing graphic pleats with a clean fitted shape.'),
+  fashion('Moonlit Draped Evening Gown', 'dresses', 4200, 6, 'fashion-01', 'A luminous full-length occasion gown with long cape sleeves, a softly draped bodice, and an elegant modest silhouette.', { oldPrice: 4800, featured: true, isNewArrival: true }),
+  fashion('Mist Tulle Maxi Skirt', 'skirts', 2900, 9, 'fashion-02', 'A floor-length tulle skirt styled with soft knitwear for a refined, fully covered look that moves beautifully.', { featured: true }),
+  fashion('Midnight Wide-Leg Layering Set', 'sets', 2450, 13, 'fashion-03', 'A tonal three-piece look pairing fluid wide-leg trousers with a long structured coat and clean jersey layer.', { isNewArrival: true }),
+  fashion('Ash Rose Column Abaya', 'dresses', 3100, 5, 'fashion-04', 'A restrained full-length abaya with long sleeves, a softly defined waist, and an elongated rose-grey drape.'),
   fashion('Rose Atelier Handbag', 'bags', 1850, 11, 'fashion-05', 'A structured rose-toned shoulder bag with polished hardware, an adjustable strap, and a compact everyday interior.', { featured: true, isNewArrival: true }),
   fashion('Wine Frame Sunglasses', 'accessories', 650, 21, 'fashion-06', 'Oversized wine-colored sunglasses with softly faceted frames and tinted lenses for an expressive finishing touch.'),
   fashion('Pearl Minaudière Bag', 'bags', 2150, 7, 'fashion-07', 'A pearl-finished occasion bag with a compact silhouette, luminous texture, and a refined detachable carry strap.'),
-  fashion('Heritage Pattern Midi Skirt', 'skirts', 1650, 14, 'fashion-08', 'A fluid midi skirt printed with a rich heritage motif and shaped with soft pleats for movement throughout the day.', { isNewArrival: true }),
+  fashion('Noir Column Maxi Skirt', 'skirts', 1650, 14, 'fashion-08', 'A clean ankle-length black skirt with a straight column line, styled for understated everyday layering.', { isNewArrival: true }),
   fashion('Citrus Court Trainers', 'shoes', 2300, 10, 'fashion-09', 'Statement court trainers in citrus, teal, and cream with a cushioned profile designed for energetic everyday styling.'),
   fashion('Sandstone Knit Dress', 'knitwear', 1950, 12, 'fashion-10', 'A soft neutral knit dress with a relaxed column line, tactile finish, and effortless layering proportions.'),
-  fashion('Golden Hour Lounge Set', 'sets', 2250, 16, 'fashion-11', 'A coordinated cropped hoodie and relaxed trouser set in saturated gold, made for polished off-duty comfort.', { featured: true }),
+  fashion('Heritage Tailored Modest Set', 'sets', 2250, 16, 'fashion-11', 'A composed blazer-and-wide-trouser pairing with a refined headscarf and considered neutral accessories.', { featured: true }),
   fashion('Weekend Straight Denim', 'denim', 1750, 18, 'fashion-12', 'Classic straight-leg denim with a clean mid rise, timeless blue wash, and dependable structure for daily wear.'),
   fashion('Terracotta Bomber Jacket', 'outerwear', 2600, 8, 'fashion-13', 'A lightweight terracotta bomber with clean ribbed edges, practical pockets, and an understated satin finish.', { isNewArrival: true }),
   fashion('Ivory Fringe Poncho', 'outerwear', 1550, 15, 'fashion-14', 'An open-knit ivory poncho with hand-finished fringe and an easy drape that brings texture to transitional outfits.'),

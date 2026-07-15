@@ -1,4 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CurrencyPipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Product } from '../core/models';
@@ -40,7 +41,23 @@ export class ProductDetailComponent implements OnInit {
   gallery(product: Product): string[] { return [...new Set([product.imageUrl, ...(product.gallery || [])])].slice(0, 5); }
   decrease(): void { this.quantity.update((value) => Math.max(1, value - 1)); }
   increase(limit: number): void { this.quantity.update((value) => Math.min(limit, value + 1)); }
-  add(product: Product): void { if (!this.auth.user()) { this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } }); return; } this.adding.set(true); this.cart.add(product._id, this.quantity(), product.name).subscribe({ next: () => { this.adding.set(false); this.quantity.set(1); }, error: () => this.adding.set(false) }); }
+  add(product: Product): void {
+    if (this.adding()) return;
+    this.adding.set(true);
+    this.auth.ensureSession().subscribe({
+      next: (user) => {
+        if (!user) { this.adding.set(false); this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } }); return; }
+        this.cart.add(product._id, this.quantity(), product.name).subscribe({
+          next: () => { this.adding.set(false); this.quantity.set(1); },
+          error: (error: HttpErrorResponse) => {
+            this.adding.set(false);
+            if (error.status === 401) { this.auth.invalidateSession(); this.cart.reset(); this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } }); }
+          },
+        });
+      },
+      error: () => this.adding.set(false),
+    });
+  }
   available(product: Product): boolean { return product.stock > 0 && !product.isManuallyUnavailable; }
   availableToAdd(product: Product): number { return Math.max(0, product.stock - this.cart.quantityFor(product._id)); }
   isFavorite(product: Product): boolean { return (this.auth.user()?.favorites || []).some((item) => (typeof item === 'string' ? item : item._id) === product._id); }

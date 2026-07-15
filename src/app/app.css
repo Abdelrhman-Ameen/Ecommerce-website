@@ -1,0 +1,59 @@
+:host { display: block; min-height: 100%; }
+
+.vellora-loader {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  overflow: hidden;
+  color: #f7f3ee;
+  background: #09111e;
+  isolation: isolate;
+}
+.vellora-loader::before,
+.vellora-loader::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgba(234, 184, 169, .16);
+  border-radius: 50%;
+}
+.vellora-loader::before { width: min(72vw, 880px); aspect-ratio: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.vellora-loader::after { width: min(42vw, 510px); aspect-ratio: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.loader-grain { position: absolute; inset: 0; pointer-events: none; opacity: .18; background-image: radial-gradient(rgba(255,255,255,.28) .55px, transparent .55px), radial-gradient(rgba(214,145,126,.25) .5px, transparent .5px); background-size: 9px 11px, 13px 15px; background-position: 0 0, 5px 7px; mix-blend-mode: soft-light; }
+.loader-index { position: absolute; top: 28px; right: 32px; left: 32px; display: flex; justify-content: space-between; color: rgba(255,255,255,.62); font-size: .58rem; font-weight: 800; letter-spacing: .22em; }
+.loader-stage { position: absolute; top: 50%; left: 50%; width: min(88vw, 720px); display: grid; place-items: center; transform: translate(-50%, -50%); }
+.loader-orbit { position: relative; width: clamp(126px, 18vw, 190px); aspect-ratio: 1; display: grid; place-items: center; }
+.loader-orbit-line { position: absolute; inset: 0; border: 1px solid rgba(240,193,180,.55); border-right-color: transparent; border-radius: 50%; animation: velloraLoaderOrbit 1.4s linear infinite; }
+.loader-orbit-dot { position: absolute; top: 10px; left: 50%; width: 8px; height: 8px; background: #eab8a9; border-radius: 50%; box-shadow: 0 0 22px rgba(234,184,169,.85); transform: translateX(-50%); animation: velloraLoaderPulse .9s ease-in-out infinite alternate; }
+.loader-orbit strong { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(4.6rem, 10vw, 7.8rem); font-weight: 400; line-height: 1; background: linear-gradient(150deg, #fff 16%, #eab8a9 58%, #9e6558); -webkit-background-clip: text; background-clip: text; color: transparent; animation: velloraLoaderMonogram 1s cubic-bezier(.16,1,.3,1) both; }
+.loader-wordmark { margin-top: 19px; display: flex; overflow: hidden; font-size: clamp(2.2rem, 7vw, 5.3rem); font-weight: 900; letter-spacing: -.075em; line-height: .9; }
+.loader-wordmark span { animation: velloraLoaderWord .75s cubic-bezier(.16,1,.3,1) .12s both; }
+.loader-wordmark span:last-child { color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.84); animation-delay: .2s; }
+.loader-stage p { margin: 17px 0 22px; color: #eab8a9; font-size: .62rem; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; }
+.loader-progress { width: min(66vw, 310px); height: 1px; overflow: hidden; background: rgba(255,255,255,.16); }
+.loader-progress span { width: 46%; height: 100%; display: block; background: linear-gradient(90deg, transparent, #fff, #eab8a9, transparent); animation: velloraLoaderProgress 1s ease-in-out infinite; }
+.loader-stage small { margin-top: 12px; color: rgba(255,255,255,.47); font-size: .54rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+.loader-count { position: absolute; right: 32px; bottom: 27px; color: rgba(255,255,255,.52); font-size: .62rem; font-weight: 800; letter-spacing: .14em; }.loader-count span { color: #eab8a9; }
+.vellora-loader.is-leaving { pointer-events: none; animation: velloraLoaderExit .36s cubic-bezier(.76,0,.24,1) forwards; }
+.vellora-loader.is-leaving .loader-stage { animation: velloraLoaderStageExit .25s ease-in forwards; }
+
+@keyframes velloraLoaderOrbit { to { transform: rotate(360deg); } }
+@keyframes velloraLoaderPulse { to { transform: translateX(-50%) scale(1.5); opacity: .48; } }
+@keyframes velloraLoaderMonogram { from { opacity: 0; transform: translateY(18px) scale(.88); filter: blur(8px); } }
+@keyframes velloraLoaderWord { from { transform: translateY(110%); } }
+@keyframes velloraLoaderProgress { from { transform: translateX(-110%); } to { transform: translateX(265%); } }
+@keyframes velloraLoaderStageExit { to { opacity: 0; transform: translate(-50%, -55%) scale(.97); } }
+@keyframes velloraLoaderExit { to { clip-path: inset(0 0 100% 0); } }
+
+@media (max-width: 600px) {
+  .loader-index { top: 20px; right: 18px; left: 18px; }
+  .loader-count { right: 18px; bottom: 20px; }
+  .vellora-loader::before { width: 122vw; }
+  .vellora-loader::after { width: 76vw; }
+  .loader-stage p { letter-spacing: .2em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-orbit-line, .loader-orbit-dot, .loader-orbit strong, .loader-wordmark span, .loader-progress span { animation: none; }
+  .vellora-loader.is-leaving { animation-duration: .01ms; }
+}

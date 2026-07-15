@@ -16,7 +16,6 @@
   --radius: 12px;
   --shadow: 0 14px 40px rgba(15, 27, 45, .08);
 }
-
 * { box-sizing: border-box; }
 html { min-height: 100%; scroll-behavior: smooth; }
 body { min-height: 100%; margin: 0; color: var(--ink); background: var(--surface); font-family: Inter, "Segoe UI", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -210,7 +209,7 @@ button.avatar-button { cursor: pointer; }
 .detail-benefits span { display: flex; align-items: center; gap: 8px; }
 .detail-accordion .accordion-item { background: transparent; border-color: var(--line); }
 .detail-accordion .accordion-button { padding-left: 0; background: transparent; box-shadow: none; font-weight: 750; }
-.detail-accordion .accordion-body { padding-left: 0; color: var(--muted); font-size: .82rem; line-height: 1.7; }
+.detail-accordion .accordion-body { padding: 9px 24px 22px; color: var(--muted); font-size: .82rem; line-height: 1.75; }
 .detail-loading { padding-top: 80px; padding-bottom: 100px; }
 .detail-image { height: 700px; }
 
@@ -919,14 +918,5 @@ button.avatar-button { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .fashion-marquee > div, .fashion-closing-orbit svg, .fashion-scroll-cue i, .fashion-ghost-title { animation: none !important; }
   .fashion-slide { transition: opacity .15s linear !important; }
-  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .product-card::after { transition: none; }
 }
-
-/* The Vellora stitch: a restrained rose-gold transition shared across the storefront. */
-@supports (view-transition-name: root) {
-  ::view-transition-old(root) { animation: vellora-page-out .16s ease both; }
-  ::view-transition-new(root) { animation: vellora-page-in .34s cubic-bezier(.22,1,.36,1) both; }
-}
-@keyframes vellora-page-out { to { opacity: 0; transform: translateY(-3px); } }
-@keyframes vellora-page-in { from { opacity: 0; transform: translateY(7px); filter: saturate(.92); } }

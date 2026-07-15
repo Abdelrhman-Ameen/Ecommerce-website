@@ -118,6 +118,19 @@ describe('Vellora API production flow', () => {
     expect(tracked.body.data.order.items[0].costPrice).toBe(40);
   });
 
+  it('automatically removes stale product references from an existing cart', async () => {
+    const missingProductId = new mongoose.Types.ObjectId();
+    await Cart.findOneAndUpdate(
+      { user: userId },
+      { $set: { items: [{ product: missingProductId, quantity: 1 }] } },
+      { upsert: true, returnDocument: 'after' },
+    );
+    const cart = await customer.get('/api/v1/cart').expect(200);
+    expect(cart.body.data.cart.items).toEqual([]);
+    const persisted = await Cart.findOne({ user: userId }).lean();
+    expect(persisted.items).toEqual([]);
+  });
+
   it('supports recommendations, analytics, and manual stock overrides', async () => {
     const recommendations = await request(app).get(`/api/v1/products/${productId}/recommendations`).expect(200);
     expect(Array.isArray(recommendations.body.data.products)).toBe(true);

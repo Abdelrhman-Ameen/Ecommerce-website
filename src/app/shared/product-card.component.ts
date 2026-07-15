@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Input, signal } from '@angular/core';
 import { CurrencyPipe, TitleCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -14,7 +15,7 @@ import { TranslatePipe } from './translate.pipe';
   template: `
     <article class="product-card h-100">
       <a class="product-image-wrap" [routerLink]="['/products', product._id]" [attr.aria-label]="'View ' + product.name">
-        <img [src]="product.imageUrl" [alt]="product.name" loading="lazy">
+        <img [src]="imageSrc()" [alt]="product.name" loading="eager" decoding="async" (load)="imageLoaded.set(true)" (error)="recoverImage()" [class.is-loaded]="imageLoaded()">
       </a>
       <button class="favorite-button" type="button" [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'" (click)="toggleFavorite()">
         <i class="bi" [class.bi-heart-fill]="isFavorite()" [class.bi-heart]="!isFavorite()"></i>
@@ -37,8 +38,20 @@ import { TranslatePipe } from './translate.pipe';
   `,
 })
 export class ProductCardComponent {
-  @Input({ required: true }) product!: Product;
+  private currentProduct!: Product;
+  private imageRetries = 0;
+  @Input({ required: true })
+  set product(value: Product) {
+    this.currentProduct = value;
+    this.imageRetries = 0;
+    this.imageLoaded.set(false);
+    this.imageSrc.set(value.imageUrl || '/assets/catalog/product-placeholder.svg');
+  }
+  get product(): Product { return this.currentProduct; }
+
   readonly adding = signal(false);
+  readonly imageLoaded = signal(false);
+  readonly imageSrc = signal('/assets/catalog/product-placeholder.svg');
   constructor(
     private auth: AuthService,
     public cart: CartService,
@@ -59,15 +72,41 @@ export class ProductCardComponent {
   }
 
   addToCart(): void {
-    if (!this.auth.user()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
-      return;
-    }
+    if (this.adding()) return;
     this.adding.set(true);
-    this.cart.add(this.product._id, 1, this.product.name).subscribe({
-      next: () => this.adding.set(false),
+    this.auth.ensureSession().subscribe({
+      next: (user) => {
+        if (!user) {
+          this.adding.set(false);
+          this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
+          return;
+        }
+        this.cart.add(this.product._id, 1, this.product.name).subscribe({
+          next: () => this.adding.set(false),
+          error: (error: HttpErrorResponse) => {
+            this.adding.set(false);
+            if (error.status === 401) {
+              this.auth.invalidateSession();
+              this.cart.reset();
+              this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
+            }
+          },
+        });
+      },
       error: () => this.adding.set(false),
     });
+  }
+
+  recoverImage(): void {
+    const original = this.product.imageUrl || '';
+    if (this.imageRetries === 0 && original && !original.startsWith('data:') && !original.startsWith('blob:')) {
+      this.imageRetries += 1;
+      const separator = original.includes('?') ? '&' : '?';
+      this.imageSrc.set(`${original}${separator}retry=1`);
+      return;
+    }
+    this.imageLoaded.set(true);
+    this.imageSrc.set('/assets/catalog/product-placeholder.svg');
   }
 
   available(): boolean { return this.product.stock > 0 && !this.product.isManuallyUnavailable; }

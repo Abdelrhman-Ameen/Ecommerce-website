@@ -2,10 +2,21 @@ const Cart = require('../models/cart-model');
 const Product = require('../models/product-model');
 const AppError = require('../utils/app-error');
 
-async function populatedCart(userId) {
-  let cart = await Cart.findOne({ user: userId }).populate('items.product');
-  if (!cart) cart = await Cart.create({ user: userId, items: [] });
+async function populateAndCleanCart(cart) {
+  await cart.populate('items.product');
+  const validItems = cart.items.filter((item) => Boolean(item.product));
+  if (validItems.length !== cart.items.length) {
+    cart.items = validItems;
+    await cart.save();
+    await cart.populate('items.product');
+  }
   return cart;
+}
+
+async function populatedCart(userId) {
+  let cart = await Cart.findOne({ user: userId });
+  if (!cart) cart = await Cart.create({ user: userId, items: [] });
+  return populateAndCleanCart(cart);
 }
 
 async function getCart(req, res) {
@@ -27,7 +38,7 @@ async function addToCart(req, res) {
   if (existing) existing.quantity = requestedTotal;
   else cart.items.push({ product: product.id, quantity: req.body.quantity });
   await cart.save();
-  await cart.populate('items.product');
+  await populateAndCleanCart(cart);
   res.status(200).json({ status: 'success', message: 'Added to your cart', data: { cart } });
 }
 
@@ -43,7 +54,7 @@ async function updateCartItem(req, res) {
   if (req.body.quantity > product.stock) throw new AppError(`Only ${product.stock} units are available`, 409);
   item.quantity = req.body.quantity;
   await cart.save();
-  await cart.populate('items.product');
+  await populateAndCleanCart(cart);
   res.status(200).json({ status: 'success', message: 'Cart updated', data: { cart } });
 }
 
@@ -52,7 +63,7 @@ async function removeCartItem(req, res) {
   if (!cart) throw new AppError('Cart not found', 404);
   cart.items = cart.items.filter((entry) => entry.product.toString() !== req.params.productId);
   await cart.save();
-  await cart.populate('items.product');
+  await populateAndCleanCart(cart);
   res.status(200).json({ status: 'success', message: 'Item removed', data: { cart } });
 }
 

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" role="img" aria-labelledby="title description">
+  <title id="title">Vellora product image</title>
+  <desc id="description">A refined neutral Vellora placeholder shown while a product photograph is unavailable.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5eee9"/>
+      <stop offset="0.55" stop-color="#e8d8d2"/>
+      <stop offset="1" stop-color="#cfa89d"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8c5448"/>
+      <stop offset="1" stop-color="#56342f"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1100" fill="url(#background)"/>
+  <circle cx="450" cy="470" r="210" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
+  <circle cx="450" cy="470" r="156" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="2"/>
+  <path d="M319 303h82l49 243 49-243h82L492 650h-84z" fill="url(#mark)"/>
+  <text x="450" y="780" fill="#56342f" font-family="Georgia,serif" font-size="72" letter-spacing="18" text-anchor="middle">VELLORA</text>
+  <text x="450" y="837" fill="#714d46" font-family="Arial,sans-serif" font-size="19" font-weight="700" letter-spacing="8" text-anchor="middle">WEAR YOUR CONFIDENCE</text>
+</svg>
