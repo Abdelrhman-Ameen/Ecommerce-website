@@ -29,7 +29,13 @@ function enforceTrustedOrigin(req, res, next) {
   const forwardedHost = req.get('x-forwarded-host') || req.get('host');
   const configured = (process.env.CLIENT_URL || '').split(',').map((item) => item.trim()).filter(Boolean);
   try {
-    if (new URL(origin).host === forwardedHost || configured.includes(origin)) return next();
+    const originUrl = new URL(origin);
+    if (originUrl.host === forwardedHost || configured.includes(origin)) return next();
+    if (process.env.NODE_ENV !== 'production') {
+      const requestHostname = forwardedHost.split(':')[0];
+      const loopbackHosts = new Set(['localhost', '127.0.0.1', '::1']);
+      if (loopbackHosts.has(originUrl.hostname) && loopbackHosts.has(requestHostname)) return next();
+    }
   } catch {
     // The shared error handler returns the response below for malformed origins.
   }

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, signal } from '@angular/core';
 import { CurrencyPipe, TitleCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Product } from '../core/models';
@@ -26,10 +26,11 @@ import { TranslatePipe } from './translate.pipe';
           <div>
             <strong class="product-price">{{ product.price | currency }}</strong>
             @if (product.oldPrice) { <span class="old-price ms-2">{{ product.oldPrice | currency }}</span> }
-            <small class="stock-label d-block" [class.low-stock]="product.stock <= 5">{{ product.stock > 0 ? (product.stock + ' ' + ('in stock' | translate)) : ('Out of stock' | translate) }}</small>
+            <small class="stock-label d-block" [class.low-stock]="product.stock <= 5 || product.isManuallyUnavailable">{{ available() ? (product.stock + ' ' + ('in stock' | translate)) : ('Out of stock' | translate) }}</small>
           </div>
-          <button class="btn btn-ink btn-icon" type="button" [disabled]="product.stock < 1" (click)="addToCart()" aria-label="Add to cart">
-            <i class="bi bi-bag-plus"></i>
+          <button class="btn btn-ink btn-icon cart-add-button" type="button" [disabled]="!available() || adding() || cart.quantityFor(product._id) >= product.stock" (click)="addToCart()" [attr.aria-label]="('Add to cart' | translate) + '. ' + cart.quantityFor(product._id) + ' in cart'">
+            @if (adding()) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-bag-plus"></i> }
+            @if (cart.quantityFor(product._id); as quantity) { <span class="product-cart-quantity" aria-live="polite">{{ quantity }}</span> }
           </button>
         </div>
       </div>
@@ -38,9 +39,10 @@ import { TranslatePipe } from './translate.pipe';
 })
 export class ProductCardComponent {
   @Input({ required: true }) product!: Product;
+  readonly adding = signal(false);
   constructor(
     private auth: AuthService,
-    private cart: CartService,
+    public cart: CartService,
     private router: Router,
     private toast: ToastService,
   ) {}
@@ -62,6 +64,12 @@ export class ProductCardComponent {
       this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
       return;
     }
-    this.cart.add(this.product._id).subscribe();
+    this.adding.set(true);
+    this.cart.add(this.product._id, 1, this.product.name).subscribe({
+      next: () => this.adding.set(false),
+      error: () => this.adding.set(false),
+    });
   }
+
+  available(): boolean { return this.product.stock > 0 && !this.product.isManuallyUnavailable; }
 }

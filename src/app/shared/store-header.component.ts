@@ -4,6 +4,7 @@ import { AuthService } from '../core/auth.service';
 import { CartService } from '../core/cart.service';
 import { LanguageService } from '../core/language.service';
 import { TranslatePipe } from './translate.pipe';
+import { ThemeService } from '../core/theme.service';
 
 @Component({
   selector: 'app-store-header',
@@ -13,7 +14,7 @@ import { TranslatePipe } from './translate.pipe';
     <header class="store-header sticky-top">
       <nav class="navbar navbar-expand-lg" aria-label="Primary navigation">
         <div class="container-xxl px-3 px-lg-4">
-          <a class="navbar-brand brand-mark" routerLink="/"><i class="bi bi-stars"></i> LuxeStudio</a>
+          <a class="navbar-brand brand-mark" routerLink="/"><i class="bi bi-stars"></i> Ma3rad El Gamila</a>
           <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation" aria-controls="mainNavigation" aria-expanded="false" aria-label="Toggle navigation">
             <i class="bi bi-list fs-3"></i>
           </button>
@@ -28,6 +29,7 @@ import { TranslatePipe } from './translate.pipe';
               <input type="search" aria-label="Search products" [placeholder]="'Search studio catalog...' | translate" [value]="search()" (input)="setSearch($event)">
             </form>
             <div class="header-actions ms-lg-3">
+              <button class="theme-switch" type="button" (click)="theme.toggle()" [attr.aria-label]="(theme.theme() === 'light' ? 'Enable dark mode' : 'Enable light mode') | translate"><i class="bi" [class.bi-moon-stars]="theme.theme() === 'light'" [class.bi-sun]="theme.theme() === 'dark'"></i></button>
               <button class="language-switch" type="button" (click)="language.toggle()" [attr.aria-label]="language.language() === 'en' ? 'Switch to Arabic' : 'Switch to English'">{{ language.language() === 'en' ? 'عربي' : 'EN' }}</button>
               <a class="header-icon" routerLink="/wishlist" [attr.aria-label]="'Favorites' | translate"><i class="bi bi-heart"></i></a>
               <a class="header-icon position-relative" routerLink="/checkout" aria-label="Cart">
@@ -58,7 +60,7 @@ import { TranslatePipe } from './translate.pipe';
 })
 export class StoreHeaderComponent {
   readonly search = signal('');
-  constructor(public auth: AuthService, public cart: CartService, public language: LanguageService, private router: Router) {
+  constructor(public auth: AuthService, public cart: CartService, public language: LanguageService, public theme: ThemeService, private router: Router) {
     effect(() => {
       if (auth.user() && !cart.cart()) cart.load().subscribe({ error: () => undefined });
       if (!auth.user()) cart.reset();

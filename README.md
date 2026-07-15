@@ -1,16 +1,17 @@
-# LuxeStudio
+# Ma3rad El Gamila
 
-LuxeStudio is a production-oriented bilingual MEAN stack e-commerce platform based on the supplied Figma experience. It combines an Angular + Bootstrap storefront with an Express API and MongoDB Atlas.
+Ma3rad El Gamila is a production-oriented bilingual MEAN stack e-commerce platform based on the supplied Figma experience. It combines an Angular + Bootstrap storefront with an Express API and MongoDB Atlas.
 
 ## Release features
 
-- Responsive storefront, catalog search/filtering, product details, cart, checkout, and order history
+- Responsive storefront, staged catalog filtering, hybrid product recommendations, live cart quantities, checkout, and order history
 - Register, login, logout, and persistent HTTP-only cookie sessions
 - Customer and admin role authorization with Angular route guards and server-side enforcement
-- Admin dashboard, product CRUD, order management, customer overview, revenue, and low-stock metrics
+- Admin dashboard with revenue/COGS/profit analytics, product CRUD, order/customer details, and inventory metrics
 - Frontend and backend validation, centralized API errors, rate limiting, security headers, loading states, and toast feedback
 - Production build and a Vercel-compatible single-origin deployment
-- English and Arabic localization with automatic RTL layout
+- English and Arabic localization with automatic RTL layout, plus a persistent light/dark theme
+- Required Egyptian governorate/city checkout addressing and manual or automatic out-of-stock controls
 - Defensive routing with guarded account/admin areas and a custom animated fashion 404 experience
 
 The former AI/image-processing endpoints and local upload storage are intentionally not part of this release. Vercel functions do not provide durable local file storage, so catalog photography is bundled under `public/assets` and product CRUD accepts a validated asset path or HTTPS URL.

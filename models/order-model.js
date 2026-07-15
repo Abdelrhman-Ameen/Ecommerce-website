@@ -9,6 +9,7 @@ const orderSchema = new mongoose.Schema({
     name: { type: String, required: true },
     imageUrl: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
+    costPrice: { type: Number, required: true, min: 0, default: 0 },
     quantity: { type: Number, required: true, min: 1 },
   }],
   shippingAddress: {
@@ -16,6 +17,7 @@ const orderSchema = new mongoose.Schema({
     email: { type: String, required: true, lowercase: true, trim: true },
     phone: { type: String, required: true, trim: true },
     street: { type: String, required: true, trim: true },
+    governorate: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },
   },
   paymentMethod: { type: String, enum: ['cash'], default: 'cash' },
@@ -41,7 +43,7 @@ const orderSchema = new mongoose.Schema({
 
 orderSchema.pre('validate', function addOrderNumber() {
   if (!this.orderNumber) {
-    this.orderNumber = `LX-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
+    this.orderNumber = `MG-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
   }
 });
 
