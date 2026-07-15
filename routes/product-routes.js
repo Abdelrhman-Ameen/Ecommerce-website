@@ -15,7 +15,7 @@ function productFields(partial = false) {
     field('category').trim().isLength({ min: 2, max: 50 }).withMessage('Category is required'),
     body('collection').optional({ checkFalsy: true }).trim().isLength({ max: 80 }),
     field('price').isFloat({ min: 0, max: 1000000 }).toFloat().withMessage('Enter a valid price'),
-    field('costPrice').isFloat({ min: 0, max: 1000000 }).toFloat().withMessage('Enter a valid cost price'),
+    body('costPrice').optional().isFloat({ min: 0, max: 1000000 }).toFloat().withMessage('Enter a valid cost price'),
     body('oldPrice').optional({ nullable: true }).isFloat({ min: 0, max: 1000000 }).toFloat(),
     field('stock').isInt({ min: 0, max: 100000 }).toInt().withMessage('Enter a valid stock quantity'),
     body('isManuallyUnavailable').optional().isBoolean().toBoolean(),
