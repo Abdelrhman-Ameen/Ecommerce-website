@@ -16,6 +16,7 @@ async function getCart(req, res) {
 async function addToCart(req, res) {
   const product = await Product.findById(req.body.productId);
   if (!product) throw new AppError('Product not found', 404);
+  if (product.isManuallyUnavailable) throw new AppError('This product is currently unavailable', 409);
   if (product.stock < req.body.quantity) throw new AppError('Requested quantity is not available', 409);
 
   let cart = await Cart.findOne({ user: req.userId });
@@ -36,6 +37,7 @@ async function updateCartItem(req, res) {
     Product.findById(req.params.productId),
   ]);
   if (!cart || !product) throw new AppError('Cart item not found', 404);
+  if (product.isManuallyUnavailable) throw new AppError('This product is currently unavailable', 409);
   const item = cart.items.find((entry) => entry.product.toString() === product.id);
   if (!item) throw new AppError('Cart item not found', 404);
   if (req.body.quantity > product.stock) throw new AppError(`Only ${product.stock} units are available`, 409);

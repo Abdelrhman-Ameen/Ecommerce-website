@@ -1,7 +1,7 @@
 {
   "name": "luxestudio-mean-commerce",
   "version": "1.0.0",
-  "description": "Production LuxeStudio bilingual MEAN e-commerce platform",
+  "description": "Production Ma3rad El Gamila bilingual MEAN e-commerce platform",
   "private": true,
   "engines": {
     "node": ">=22 <25"

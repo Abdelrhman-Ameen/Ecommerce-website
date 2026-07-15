@@ -17,8 +17,9 @@ async function createOrder(req, res) {
       let subtotal = 0;
       for (const item of cart.items) {
         if (!item.product) throw new AppError('A product in your cart is no longer available', 409);
+        if (item.product.isManuallyUnavailable) throw new AppError(`${item.product.name} is currently unavailable`, 409);
         const updated = await Product.findOneAndUpdate(
-          { _id: item.product.id, stock: { $gte: item.quantity } },
+          { _id: item.product.id, stock: { $gte: item.quantity }, isManuallyUnavailable: { $ne: true } },
           { $inc: { stock: -item.quantity } },
           { returnDocument: 'after', session },
         );
@@ -29,6 +30,7 @@ async function createOrder(req, res) {
           name: item.product.name,
           imageUrl: item.product.imageUrl,
           price: item.product.price,
+          costPrice: item.product.costPrice || 0,
           quantity: item.quantity,
         });
       }
@@ -63,7 +65,7 @@ async function getOrderById(req, res) {
   const filter = req.userRole === 'admin'
     ? { _id: req.params.id }
     : { _id: req.params.id, user: req.userId };
-  const order = await Order.findOne(filter).populate('user', 'firstName lastName email');
+  const order = await Order.findOne(filter).populate('user', 'firstName lastName email phone role createdAt');
   if (!order) throw new AppError('Order not found', 404);
   res.status(200).json({ status: 'success', data: { order } });
 }
@@ -71,7 +73,7 @@ async function getOrderById(req, res) {
 async function getAllOrders(req, res) {
   const status = req.query.status;
   const filter = status ? { status } : {};
-  const orders = await Order.find(filter).populate('user', 'firstName lastName email').sort('-createdAt').lean();
+  const orders = await Order.find(filter).populate('user', 'firstName lastName email phone role createdAt').sort('-createdAt').lean();
   res.status(200).json({ status: 'success', data: { orders } });
 }
 

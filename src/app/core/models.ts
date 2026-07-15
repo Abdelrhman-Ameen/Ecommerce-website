@@ -8,12 +8,12 @@ export interface Product {
   category: string;
   collection?: string;
   price: number;
+  costPrice: number;
   oldPrice?: number | null;
   stock: number;
+  isManuallyUnavailable: boolean;
   imageUrl: string;
   gallery: string[];
-  rating: number;
-  reviewsCount: number;
   featured: boolean;
   isNewArrival: boolean;
   createdAt?: string;
@@ -49,8 +49,8 @@ export interface Order {
   _id: string;
   orderNumber: string;
   user: User | string;
-  items: Array<{ product: string; name: string; imageUrl: string; price: number; quantity: number }>;
-  shippingAddress: { fullName: string; email: string; phone: string; street: string; city: string };
+  items: Array<{ product: string; name: string; imageUrl: string; price: number; costPrice?: number; quantity: number }>;
+  shippingAddress: { fullName: string; email: string; phone: string; street: string; governorate: string; city: string };
   paymentMethod: 'cash';
   subtotal: number;
   shippingPrice: number;

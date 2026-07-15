@@ -40,7 +40,7 @@ app.use(enforceTrustedOrigin);
 if (process.env.NODE_ENV !== 'test') app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.get('/api/v1/health', (req, res) => {
-  res.status(200).json({ status: 'success', message: 'LuxeStudio API is healthy', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'success', message: 'Ma3rad El Gamila API is healthy', timestamp: new Date().toISOString() });
 });
 
 app.use('/api/v1', async (req, res, next) => {

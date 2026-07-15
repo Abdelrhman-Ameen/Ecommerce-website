@@ -6,12 +6,12 @@ const productSchema = new mongoose.Schema({
   category: { type: String, required: true, trim: true, lowercase: true, maxlength: 50, index: true },
   collection: { type: String, trim: true, lowercase: true, maxlength: 80 },
   price: { type: Number, required: true, min: 0, max: 1000000 },
+  costPrice: { type: Number, required: true, min: 0, max: 1000000, default: 0 },
   oldPrice: { type: Number, min: 0, max: 1000000 },
   stock: { type: Number, required: true, min: 0, max: 100000, default: 0 },
+  isManuallyUnavailable: { type: Boolean, default: false, index: true },
   imageUrl: { type: String, required: true, trim: true, maxlength: 500 },
   gallery: [{ type: String, trim: true, maxlength: 500 }],
-  rating: { type: Number, min: 0, max: 5, default: 4.8 },
-  reviewsCount: { type: Number, min: 0, default: 0 },
   featured: { type: Boolean, default: false, index: true },
   isNewArrival: { type: Boolean, default: false, index: true },
 }, {
@@ -27,5 +27,11 @@ const productSchema = new mongoose.Schema({
 });
 
 productSchema.index({ name: 'text', description: 'text', category: 'text' });
+
+productSchema.pre('validate', function normalizeCatalogFields() {
+  const normalize = (value) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').toLowerCase() : value;
+  this.category = normalize(this.category);
+  this.collection = normalize(this.collection);
+});
 
 module.exports = mongoose.models.Product || mongoose.model('Product', productSchema);

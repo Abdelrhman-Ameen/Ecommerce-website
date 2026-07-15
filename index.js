@@ -6,7 +6,7 @@ const port = Number(process.env.PORT) || 5000;
 
 async function start() {
   await connectDatabase();
-  app.listen(port, () => console.log(`LuxeStudio API listening on http://localhost:${port}`));
+  app.listen(port, () => console.log(`Ma3rad El Gamila API listening on http://localhost:${port}`));
 }
 
 start().catch((error) => {

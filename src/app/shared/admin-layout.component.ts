@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { AuthService } from '../core/auth.service';
 import { LanguageService } from '../core/language.service';
 import { TranslatePipe } from './translate.pipe';
+import { ThemeService } from '../core/theme.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -11,7 +12,7 @@ import { TranslatePipe } from './translate.pipe';
   template: `
     <div class="admin-shell">
       <aside class="admin-sidebar">
-        <div class="d-flex align-items-center justify-content-between"><a class="brand-mark px-3" routerLink="/admin"><i class="bi bi-stars"></i> Studio Admin</a><button class="language-switch" type="button" (click)="language.toggle()">{{ language.language() === 'en' ? 'عربي' : 'EN' }}</button></div>
+        <div class="d-flex align-items-center justify-content-between"><a class="brand-mark px-3" routerLink="/admin"><i class="bi bi-stars"></i> Ma3rad Admin</a><div class="d-flex gap-2"><button class="theme-switch" type="button" (click)="theme.toggle()" [attr.aria-label]="(theme.theme() === 'light' ? 'Enable dark mode' : 'Enable light mode') | translate"><i class="bi" [class.bi-moon-stars]="theme.theme() === 'light'" [class.bi-sun]="theme.theme() === 'dark'"></i></button><button class="language-switch" type="button" (click)="language.toggle()">{{ language.language() === 'en' ? 'عربي' : 'EN' }}</button></div></div>
         @if (auth.user(); as user) {
           <div class="admin-user mx-3"><div class="avatar-button">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</div><div><strong>{{ user.firstName }} {{ user.lastName }}</strong><small>{{ 'Administrator' | translate }}</small></div></div>
         }
@@ -31,6 +32,6 @@ import { TranslatePipe } from './translate.pipe';
   `,
 })
 export class AdminLayoutComponent {
-  constructor(public auth: AuthService, public language: LanguageService, private router: Router) {}
+  constructor(public auth: AuthService, public language: LanguageService, public theme: ThemeService, private router: Router) {}
   logout(): void { this.auth.logout().subscribe(() => this.router.navigate(['/login'])); }
 }
