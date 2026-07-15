@@ -1,13 +1,13 @@
-# Ma3rad El Gamila
+# Vellora
 
-Ma3rad El Gamila is a production-oriented bilingual MEAN stack e-commerce platform based on the supplied Figma experience. It combines an Angular + Bootstrap storefront with an Express API and MongoDB Atlas.
+Vellora is a production-oriented bilingual MEAN stack e-commerce platform based on the supplied Figma experience. It combines an Angular + Bootstrap storefront with an Express API and MongoDB Atlas.
 
 ## Release features
 
 - Responsive storefront, staged catalog filtering, hybrid product recommendations, live cart quantities, checkout, and order history
 - Register, login, logout, and persistent HTTP-only cookie sessions
 - Customer and admin role authorization with Angular route guards and server-side enforcement
-- Admin dashboard with revenue/COGS/profit analytics, product CRUD, order/customer details, and inventory metrics
+- Admin dashboard with online/store revenue analytics, customer debt tracking, product CRUD, order/customer details, and inventory metrics
 - Frontend and backend validation, centralized API errors, rate limiting, security headers, loading states, and toast feedback
 - Production build and a Vercel-compatible single-origin deployment
 - English and Arabic localization with automatic RTL layout, plus a persistent light/dark theme

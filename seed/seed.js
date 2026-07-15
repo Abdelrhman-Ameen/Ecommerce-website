@@ -81,7 +81,7 @@ async function seed() {
 
   let admin = await User.findOne({ email: process.env.ADMIN_EMAIL }).select('+password');
   if (!admin) {
-    admin = new User({ firstName: 'Ma3rad', lastName: 'Admin', email: process.env.ADMIN_EMAIL, role: 'admin' });
+    admin = new User({ firstName: 'Vellora', lastName: 'Admin', email: process.env.ADMIN_EMAIL, role: 'admin' });
   }
   admin.password = process.env.ADMIN_PASSWORD;
   admin.role = 'admin';

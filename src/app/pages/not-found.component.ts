@@ -9,7 +9,7 @@ import { LanguageService } from '../core/language.service';
   template: `
     <section class="fashion-404">
       <button class="language-switch not-found-language" type="button" (click)="language.toggle()">{{ language.language() === 'en' ? 'عربي' : 'EN' }}</button>
-      <a class="brand-mark fashion-404-brand" routerLink="/"><i class="bi bi-stars"></i> Ma3rad El Gamila</a>
+      <a class="brand-mark fashion-404-brand" routerLink="/"><i class="bi bi-stars"></i> Vellora</a>
       <div class="fashion-error-art" aria-hidden="true">
         <div class="error-digits"><span>4</span><span>0</span><span>4</span></div>
         <div class="clothing-rack"><span class="rack-top"></span><span class="rack-pole left"></span><span class="rack-pole right"></span><span class="rack-foot left"></span><span class="rack-foot right"></span>

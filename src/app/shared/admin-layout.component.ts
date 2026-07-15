@@ -13,7 +13,7 @@ import { TranslatePipe } from './translate.pipe';
     <div class="admin-shell">
       <aside class="admin-sidebar">
         <div class="admin-sidebar-head">
-          <a class="brand-mark" routerLink="/admin"><i class="bi bi-stars"></i> Ma3rad Admin</a>
+          <a class="brand-mark" routerLink="/admin"><i class="bi bi-stars"></i> Vellora Admin</a>
           <div class="admin-sidebar-controls"><span>{{ 'Interface' | translate }}</span><div><button class="theme-switch" type="button" (click)="theme.toggle()" [attr.aria-label]="(theme.theme() === 'light' ? 'Enable dark mode' : 'Enable light mode') | translate"><i class="bi" [class.bi-moon-stars]="theme.theme() === 'light'" [class.bi-sun]="theme.theme() === 'dark'"></i></button><button class="language-switch" type="button" (click)="language.toggle()">{{ language.language() === 'en' ? 'عربي' : 'EN' }}</button></div></div>
         </div>
         @if (auth.user(); as user) {
@@ -21,6 +21,7 @@ import { TranslatePipe } from './translate.pipe';
         }
         <nav class="admin-nav" aria-label="Admin navigation">
           <a routerLink="/admin" [routerLinkActiveOptions]="{exact:true}" routerLinkActive="active"><i class="bi bi-grid-1x2"></i>{{ 'Dashboard' | translate }}</a>
+          <a routerLink="/admin/homepage" routerLinkActive="active"><i class="bi bi-window-stack"></i>{{ 'Homepage editor' | translate }}</a>
           <a routerLink="/admin/products" routerLinkActive="active"><i class="bi bi-box-seam"></i>{{ 'Products' | translate }}</a>
           <a routerLink="/admin/orders" routerLinkActive="active"><i class="bi bi-cart3"></i>{{ 'Orders' | translate }}</a>
           <a routerLink="/admin/offline-sales" routerLinkActive="active"><i class="bi bi-receipt-cutoff"></i>{{ 'Store sales & debts' | translate }}</a>
