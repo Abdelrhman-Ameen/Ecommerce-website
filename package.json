@@ -1,15 +1,24 @@
 {
-  "name": "e-commerance",
-  "version": "0.0.0",
+  "name": "luxestudio-mean-commerce",
+  "version": "1.0.0",
+  "description": "Production LuxeStudio bilingual MEAN e-commerce platform",
+  "private": true,
+  "engines": {
+    "node": ">=22 <25"
+  },
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node index.js",
+    "client": "ng serve --proxy-config proxy.conf.json",
+    "server:dev": "nodemon index.js",
+    "dev": "concurrently -k -n API,WEB -c magenta,cyan \"npm:server:dev\" \"npm:client\"",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed": "node seed/seed.js",
+    "check:server": "node --check index.js && node --check app.js && node --check api/index.js"
   },
-  "private": true,
-  "packageManager": "npm@10.9.3",
   "dependencies": {
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
@@ -17,6 +26,20 @@
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "bcryptjs": "^3.0.3",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.0.2",
+    "morgan": "^1.10.1",
+    "ngx-bootstrap": "^21.2.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -24,8 +47,11 @@
     "@angular/build": "^21.2.19",
     "@angular/cli": "^21.2.19",
     "@angular/compiler-cli": "^21.2.0",
+    "concurrently": "^9.2.1",
     "jsdom": "^28.0.0",
+    "nodemon": "^3.1.11",
     "prettier": "^3.8.1",
+    "supertest": "^7.2.2",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
   }
