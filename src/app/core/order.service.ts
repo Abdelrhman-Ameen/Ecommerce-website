@@ -1,12 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { ApiResponse, Order, OrderStatus } from './models';
+import { ApiResponse, DeliverySettings, Order, OrderStatus } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private readonly api = '/api/v1/orders';
   constructor(private http: HttpClient) {}
+
+  deliverySettings(): Observable<DeliverySettings> { return this.http.get<ApiResponse<{ settings: DeliverySettings }>>(`${this.api}/delivery-settings`).pipe(map((response) => response.data.settings)); }
 
   checkout(shippingAddress: Record<string, string>): Observable<Order> {
     return this.http.post<ApiResponse<{ order: Order }>>(this.api, { shippingAddress }).pipe(map((response) => response.data.order));

@@ -92,8 +92,16 @@ export interface CatalogCategoryNode {
   subcategories: string[];
 }
 
-export type SupportTicketStatus = 'open' | 'in_progress' | 'resolved';
+export type SupportTicketStatus = 'open' | 'in_progress' | 'waiting_admin' | 'waiting_customer' | 'resolved';
 export interface SupportSettings { email: string; phone: string; hours: string; }
+export interface DeliverySettings { deliveryFee: number; freeShippingThreshold: number | null; }
+export interface SupportMessage {
+  _id?: string;
+  sender: 'customer' | 'admin';
+  senderId?: string | null;
+  body: string;
+  createdAt: string;
+}
 export interface SupportTicket {
   _id: string;
   ticketNumber: string;
@@ -104,9 +112,12 @@ export interface SupportTicket {
   category: 'order' | 'product' | 'delivery' | 'return' | 'account' | 'other';
   subject: string;
   message: string;
+  messages: SupportMessage[];
   status: SupportTicketStatus;
   adminNote?: string;
   createdAt: string;
+  updatedAt?: string;
+  lastMessageAt?: string;
   resolvedAt?: string | null;
 }
 

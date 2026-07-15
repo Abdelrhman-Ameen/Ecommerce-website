@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { ApiResponse, CatalogCategory, HomepageData, HomepageSettings, OfflineDebtor, OfflineSale, Order, PaymentMethod, Product, SupportSettings, SupportTicket, SupportTicketStatus, User } from './models';
+import { ApiResponse, CatalogCategory, DeliverySettings, HomepageData, HomepageSettings, OfflineDebtor, OfflineSale, Order, PaymentMethod, Product, SupportSettings, SupportTicket, SupportTicketStatus, User } from './models';
 
 export interface DashboardData {
   usersCount: number;
@@ -55,6 +55,8 @@ export class AdminService {
   private readonly api = '/api/v1/admin';
   constructor(private http: HttpClient) {}
   dashboard(): Observable<DashboardData> { return this.http.get<ApiResponse<DashboardData>>(`${this.api}/dashboard`).pipe(map((response) => response.data)); }
+  deliverySettings(): Observable<DeliverySettings> { return this.http.get<ApiResponse<{ settings: DeliverySettings }>>(`${this.api}/delivery-settings`).pipe(map((response) => response.data.settings)); }
+  saveDeliverySettings(payload: DeliverySettings): Observable<DeliverySettings> { return this.http.put<ApiResponse<{ settings: DeliverySettings }>>(`${this.api}/delivery-settings`, payload).pipe(map((response) => response.data.settings)); }
   users(): Observable<User[]> { return this.http.get<ApiResponse<{ users: User[] }>>(`${this.api}/users`).pipe(map((response) => response.data.users)); }
   homepageSettings(): Observable<HomepageData> { return this.http.get<ApiResponse<HomepageData>>(`${this.api}/homepage-settings`).pipe(map((response) => response.data)); }
   saveHomepageSettings(payload: HomepageSettings): Observable<HomepageData> { return this.http.put<ApiResponse<HomepageData>>(`${this.api}/homepage-settings`, payload).pipe(map((response) => response.data)); }
@@ -65,7 +67,8 @@ export class AdminService {
   deleteCategory(id: string): Observable<void> { return this.http.delete<ApiResponse<object>>(`${this.api}/categories/${id}`).pipe(map(() => undefined)); }
   support(status: SupportTicketStatus | 'all' = 'all'): Observable<{ settings: SupportSettings; tickets: SupportTicket[] }> { return this.http.get<ApiResponse<{ settings: SupportSettings; tickets: SupportTicket[] }>>(`${this.api}/support`, { params: { status } }).pipe(map((response) => response.data)); }
   saveSupportSettings(payload: SupportSettings): Observable<SupportSettings> { return this.http.put<ApiResponse<{ settings: SupportSettings }>>(`${this.api}/support/settings`, payload).pipe(map((response) => response.data.settings)); }
-  updateSupportTicket(id: string, payload: { status: SupportTicketStatus; adminNote?: string }): Observable<SupportTicket> { return this.http.patch<ApiResponse<{ ticket: SupportTicket }>>(`${this.api}/support/tickets/${id}`, payload).pipe(map((response) => response.data.ticket)); }
+  updateSupportTicket(id: string, payload: { status: SupportTicketStatus }): Observable<SupportTicket> { return this.http.patch<ApiResponse<{ ticket: SupportTicket }>>(`${this.api}/support/tickets/${id}`, payload).pipe(map((response) => response.data.ticket)); }
+  replyToSupportTicket(id: string, message: string): Observable<SupportTicket> { return this.http.post<ApiResponse<{ ticket: SupportTicket }>>(`${this.api}/support/tickets/${id}/messages`, { message }).pipe(map((response) => response.data.ticket)); }
   offlineSales(): Observable<OfflineSalesData> { return this.http.get<ApiResponse<OfflineSalesData>>(`${this.api}/offline-sales`).pipe(map((response) => response.data)); }
   createOfflineSale(payload: OfflineSalePayload): Observable<OfflineSale> { return this.http.post<ApiResponse<{ sale: OfflineSale }>>(`${this.api}/offline-sales`, payload).pipe(map((response) => response.data.sale)); }
   addOfflinePayment(id: string, payload: { amount: number; method: PaymentMethod; paidAt: string; note?: string }): Observable<OfflineSale> { return this.http.patch<ApiResponse<{ sale: OfflineSale }>>(`${this.api}/offline-sales/${id}/payments`, payload).pipe(map((response) => response.data.sale)); }

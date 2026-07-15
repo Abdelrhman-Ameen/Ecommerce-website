@@ -16,6 +16,7 @@ const SiteMedia = require('../models/site-media-model');
 const Category = require('../models/category-model');
 const SupportSetting = require('../models/support-setting-model');
 const SupportTicket = require('../models/support-ticket-model');
+const DeliverySetting = require('../models/delivery-setting-model');
 
 describe('Vellora API production flow', () => {
   const unique = Date.now();
@@ -34,9 +35,10 @@ describe('Vellora API production flow', () => {
   let supportTicketId;
   let originalHomepage;
   let originalSupportSettings;
+  let originalDeliverySettings;
   const categoryName = `integration testing ${unique}`;
 
-  beforeAll(async () => { await connectDatabase(); originalHomepage = await HomepageSetting.findOne({ key: 'homepage' }).lean(); originalSupportSettings = await SupportSetting.findOne({ key: 'support' }).lean(); });
+  beforeAll(async () => { await connectDatabase(); originalHomepage = await HomepageSetting.findOne({ key: 'homepage' }).lean(); originalSupportSettings = await SupportSetting.findOne({ key: 'support' }).lean(); originalDeliverySettings = await DeliverySetting.findOne({ key: 'delivery' }).lean(); });
 
   afterAll(async () => {
     if (userId) {
@@ -52,6 +54,8 @@ describe('Vellora API production flow', () => {
     else await HomepageSetting.deleteOne({ key: 'homepage' });
     if (originalSupportSettings) await SupportSetting.replaceOne({ key: 'support' }, originalSupportSettings, { upsert: true });
     else await SupportSetting.deleteOne({ key: 'support' });
+    if (originalDeliverySettings) await DeliverySetting.replaceOne({ key: 'delivery' }, originalDeliverySettings, { upsert: true });
+    else await DeliverySetting.deleteOne({ key: 'delivery' });
     await Product.deleteMany({ name: new RegExp(`Integration Test ${unique}`) });
     await mongoose.disconnect();
   });
@@ -101,6 +105,10 @@ describe('Vellora API production flow', () => {
   });
 
   it('supports favorites, cart CRUD, checkout, and order tracking', async () => {
+    const delivery = await admin.put('/api/v1/admin/delivery-settings').send({ deliveryFee: 75, freeShippingThreshold: 1000 }).expect(200);
+    expect(delivery.body.data.settings.deliveryFee).toBe(75);
+    const customerDelivery = await customer.get('/api/v1/orders/delivery-settings').expect(200);
+    expect(customerDelivery.body.data.settings.freeShippingThreshold).toBe(1000);
     await customer.patch(`/api/v1/auth/favorites/${productId}`).send({}).expect(200);
     await customer.post('/api/v1/cart').send({ productId, quantity: 2 }).expect(200);
     const cart = await customer.get('/api/v1/cart').expect(200);
@@ -109,6 +117,8 @@ describe('Vellora API production flow', () => {
     await customer.post('/api/v1/orders').send({ shippingAddress: { fullName: 'Integration Customer', email, phone: '+201000000099', street: '10 Integration Street', city: 'Cairo' } }).expect(422);
     const order = await customer.post('/api/v1/orders').send({ shippingAddress: { fullName: 'Integration Customer', email, phone: '+201000000099', street: '10 Integration Street', governorate: 'Cairo', city: 'Cairo' } }).expect(201);
     orderId = order.body.data.order._id;
+    expect(order.body.data.order.shippingPrice).toBe(75);
+    expect(order.body.data.order.totalPrice).toBe(order.body.data.order.subtotal + 75);
     const orders = await customer.get('/api/v1/orders/my-orders').expect(200);
     expect(orders.body.data.orders.some((item) => item._id === orderId)).toBe(true);
     await admin.patch(`/api/v1/orders/${orderId}/status`).send({ status: 'processing' }).expect(200);
@@ -215,7 +225,7 @@ describe('Vellora API production flow', () => {
     }
   });
 
-  it('creates and resolves a customer support ticket with editable contact details', async () => {
+  it('supports a two-way ticket conversation and editable contact details', async () => {
     const contact = await request(app).get('/api/v1/support/contact').expect(200);
     expect(contact.body.data.settings).toHaveProperty('email');
     const created = await customer.post('/api/v1/support/tickets').send({
@@ -223,14 +233,21 @@ describe('Vellora API production flow', () => {
       subject: 'Integration support request', message: 'Please verify that this temporary support ticket reaches the admin console.',
     }).expect(201);
     supportTicketId = created.body.data.ticket._id;
+    expect(created.body.data.ticket.status).toBe('waiting_admin');
+    expect(created.body.data.ticket.messages).toHaveLength(1);
     const mine = await customer.get('/api/v1/support/my-tickets').expect(200);
     expect(mine.body.data.tickets.some((ticket) => ticket._id === supportTicketId)).toBe(true);
     const adminView = await admin.get('/api/v1/admin/support').expect(200);
     expect(adminView.body.data.tickets.some((ticket) => ticket._id === supportTicketId)).toBe(true);
     await admin.put('/api/v1/admin/support/settings').send({ email: 'qa-support@vellora.store', phone: '+201000000077', hours: 'Integration hours' }).expect(200);
-    const resolved = await admin.patch(`/api/v1/admin/support/tickets/${supportTicketId}`).send({ status: 'resolved', adminNote: 'Resolved by automated verification.' }).expect(200);
+    const adminReply = await admin.post(`/api/v1/admin/support/tickets/${supportTicketId}/messages`).send({ message: 'We checked the request. Could you confirm the order number?' }).expect(201);
+    expect(adminReply.body.data.ticket.status).toBe('waiting_customer');
+    expect(adminReply.body.data.ticket.messages).toHaveLength(2);
+    const customerReply = await customer.post(`/api/v1/support/tickets/${supportTicketId}/messages`).send({ message: 'The order number is VEL-TEST-2026.' }).expect(201);
+    expect(customerReply.body.data.ticket.status).toBe('waiting_admin');
+    expect(customerReply.body.data.ticket.messages).toHaveLength(3);
+    const resolved = await admin.patch(`/api/v1/admin/support/tickets/${supportTicketId}`).send({ status: 'resolved' }).expect(200);
     expect(resolved.body.data.ticket.status).toBe('resolved');
-    expect(resolved.body.data.ticket.adminNote).toContain('automated verification');
     if (originalSupportSettings) await SupportSetting.replaceOne({ key: 'support' }, originalSupportSettings, { upsert: true });
     else await SupportSetting.deleteOne({ key: 'support' });
   });

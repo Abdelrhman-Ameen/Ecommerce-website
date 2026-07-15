@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true, trim: true, lowercase: true, minlength: 2, maxlength: 50 },
+  name: { type: String, required: true, trim: true, lowercase: true, minlength: 2, maxlength: 50 },
   parent: { type: String, default: null, trim: true, lowercase: true, minlength: 2, maxlength: 50, index: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true });
+
+categorySchema.index({ parent: 1, name: 1 }, { unique: true });
 
 categorySchema.pre('validate', function normalizeName() {
   const normalize = (value) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').toLowerCase() : value;

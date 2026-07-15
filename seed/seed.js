@@ -4,6 +4,7 @@ const connectDatabase = require('../config/db-connect');
 const User = require('../models/user-model');
 const Product = require('../models/product-model');
 const Category = require('../models/category-model');
+const DeliverySetting = require('../models/delivery-setting-model');
 
 const fashion = (name, subcategory, price, stock, image, description, extras = {}) => ({
   name, category: 'fashion', subcategory, price, stock,
@@ -32,23 +33,35 @@ const products = [
   fashion('Soft Tailored T-Shirt', 't-shirts', 750, 28, 'fashion-10', 'A refined everyday T-shirt cut from smooth cotton jersey with a neat neckline and softly tailored proportion.', { isNewArrival: true }),
   fashion('Vellora Signature T-Shirt', 't-shirts', 850, 22, 'fashion-15', 'A premium rib-knit T-shirt with a relaxed shoulder, substantial hand feel, and subtle tonal Vellora detailing.'),
   fashion('Fluid Wide-Leg Trousers', 'trousers', 1800, 17, 'fashion-11', 'High-rise wide-leg trousers with a fluid drape, precise front crease, and an easy full-length silhouette.'),
-  { name: 'Geo Plant Pot', category: 'plants', price: 520, stock: 19, imageUrl: '/assets/catalog/plants-01.webp', description: 'A faceted ceramic planter with a mineral palette and drainage-ready form for shelves and sunny living spaces.', featured: true },
-  { name: 'Olive Ceramic Planter', category: 'plants', price: 680, stock: 12, imageUrl: '/assets/catalog/plants-02.webp', description: 'A softly glazed ceramic planter paired with a calm botanical profile for modern homes and workspaces.' },
-  { name: 'Aperture Film Camera', category: 'photography', price: 3200, stock: 4, imageUrl: '/assets/catalog/photography-01.webp', description: 'A tactile film camera for considered everyday photography, with direct controls and a timeless compact form.' },
-  { name: 'Lumina Desk Lamp', category: 'lighting', price: 1450, stock: 12, imageUrl: '/assets/catalog/lighting-01.webp', description: 'A precision task lamp with an adjustable head and warm glare-free illumination for desks and reading corners.' },
-  { name: 'Matte Coffee Mug', category: 'kitchen', price: 390, stock: 31, imageUrl: '/assets/catalog/kitchen-01.webp', description: 'A hand-finished ceramic mug with a tactile matte glaze and balanced handle for coffee, tea, or cocoa.' },
-  { name: 'Wireless Studio Headphones', category: 'electronics', price: 3990, oldPrice: 4490, stock: 10, imageUrl: '/assets/catalog/electronics-01.webp', description: 'Immersive over-ear headphones with balanced sound, active noise control, and comfortable all-day padding.' },
-  { name: 'Minimalist Lounge Chair', category: 'furniture', price: 8900, stock: 3, imageUrl: '/assets/catalog/furniture-01.webp', description: 'A refined lounge chair balancing tailored upholstery, a slim frame, and generous comfort in a small footprint.' },
-  { name: 'Aeris Sculptural Vase', category: 'home decor', price: 1250, stock: 14, imageUrl: '/assets/catalog/decor-01.webp', description: 'An exploration of organic form, finished with a matte neutral surface for quiet and considered interiors.' },
+  { name: 'Matte Coffee Mug', category: 'kitchen', subcategory: 'drinkware', price: 390, stock: 31, imageUrl: '/assets/catalog/kitchen-01.webp', description: 'A hand-finished ceramic mug with a tactile matte glaze and balanced handle for coffee, tea, or cocoa.' },
+  { name: 'Artisan Counter Caddy', category: 'kitchen', subcategory: 'serveware', price: 980, stock: 14, imageUrl: '/assets/catalog/kitchen-02.jpg', description: 'A warm wood counter caddy that gathers serving utensils, linens, and everyday essentials into one considered display.' },
+  { name: 'Glass Pantry Canister', category: 'kitchen', subcategory: 'storage', price: 320, stock: 25, imageUrl: '/assets/catalog/kitchen-03.jpg', description: 'A clear glass pantry canister with a secure metal lid, designed for neat, visible storage of dry ingredients.' },
+  { name: 'Wireless Studio Headphones', category: 'electronics', subcategory: 'audio', price: 3990, oldPrice: 4490, stock: 10, imageUrl: '/assets/catalog/electronics-01.webp', description: 'Immersive over-ear headphones with balanced sound, active noise control, and comfortable all-day padding.' },
+  { name: 'Minimal Smart Watch', category: 'electronics', subcategory: 'wearables', price: 4750, stock: 8, imageUrl: '/assets/catalog/electronics-02.jpg', description: 'A streamlined smart watch with a vivid activity display, everyday notifications, and a comfortable dark leather strap.' },
+  { name: 'Compact Ambient Speaker', category: 'electronics', subcategory: 'smart home', price: 3650, stock: 12, imageUrl: '/assets/catalog/electronics-03.jpg', description: 'A compact mesh speaker with room-filling sound, clean voice control, and a subtle form suited to modern interiors.' },
+  { name: 'Minimalist Lounge Chair', category: 'furniture', subcategory: 'seating', price: 8900, stock: 3, imageUrl: '/assets/catalog/furniture-01.webp', description: 'A refined lounge chair balancing tailored upholstery, a slim frame, and generous comfort in a small footprint.' },
+  { name: 'Slate Pedestal Side Table', category: 'furniture', subcategory: 'tables', price: 4200, stock: 7, imageUrl: '/assets/catalog/furniture-02.jpg', description: 'A slim pedestal side table with a softly rounded top and restrained dark finish for compact living spaces.' },
+  { name: 'Woven Front Storage Cabinet', category: 'furniture', subcategory: 'storage', price: 11800, stock: 4, imageUrl: '/assets/catalog/furniture-03.jpg', description: 'A warm wood storage cabinet with woven cane doors, elevated legs, and practical shelving behind its tactile front.' },
+  { name: 'Aeris Sculptural Vase', category: 'home decor', subcategory: 'vases', price: 1250, stock: 14, imageUrl: '/assets/catalog/decor-01.webp', description: 'An exploration of organic form, finished with a matte neutral surface for quiet and considered interiors.' },
+  { name: 'Cadence Abstract Wall Print', category: 'home decor', subcategory: 'wall art', price: 1750, stock: 9, imageUrl: '/assets/catalog/decor-02.jpg', description: 'A saturated abstract art print with expressive layers of ochre, crimson, and ink for a confident interior focal point.' },
+  { name: 'Cloud Woven Throw', category: 'home decor', subcategory: 'textiles', price: 1450, stock: 16, imageUrl: '/assets/catalog/decor-03.jpg', description: 'A generously scaled woven throw with an oversized braided texture and calm neutral tone for sofas and reading chairs.' },
 ];
 
-const roots = ['fashion', 'plants', 'photography', 'lighting', 'kitchen', 'electronics', 'furniture', 'home decor'];
-const fashionSubcategories = ['accessories', 'bags', 'denim', 'dresses', 'knitwear', 'outerwear', 'sets', 'shirts', 'shoes', 'skirts', 't-shirts', 'trousers'];
+const roots = ['fashion', 'kitchen', 'electronics', 'furniture', 'home decor'];
+const subcategoriesByRoot = {
+  fashion: ['accessories', 'bags', 'denim', 'dresses', 'knitwear', 'outerwear', 'sets', 'shirts', 'shoes', 'skirts', 't-shirts', 'trousers'],
+  kitchen: ['drinkware', 'serveware', 'storage'],
+  electronics: ['audio', 'smart home', 'wearables'],
+  furniture: ['seating', 'storage', 'tables'],
+  'home decor': ['textiles', 'vases', 'wall art'],
+};
+const deprecatedCategories = ['plants', 'photography', 'lighting'];
 const legacySeedNames = [
   'Aeris Sculptural Vase', 'Wireless Studio Headphones', 'Lumina Desk Lamp', 'Minimalist Chair', 'Atelier Leather Bag',
   'Matte Coffee Mug', 'Studio Smart Watch', 'Oak Table Organizer', 'Abstract Wall Art', 'Geo Plant Pot',
   'Handcrafted Wooden Tray', 'Santal Scented Candle', 'Walnut Serving Tray', 'Sculpted Ceramic Lamp',
   'Olive Ceramic Planter', 'AI Vision Lens Pro',
+  'Aperture Film Camera', 'Lumina Desk Lamp', 'Geo Plant Pot', 'Olive Ceramic Planter',
 ];
 
 async function seed() {
@@ -63,12 +76,24 @@ async function seed() {
     admin.role = 'admin';
   }
   await admin.save();
+  await DeliverySetting.updateOne(
+    { key: 'delivery' },
+    { $setOnInsert: { key: 'delivery', deliveryFee: 25, freeShippingThreshold: 2000, updatedBy: admin._id } },
+    { upsert: true },
+  );
+
+  await Product.deleteMany({ category: { $in: deprecatedCategories } });
+  await Category.deleteMany({ $or: [{ name: { $in: deprecatedCategories }, parent: null }, { parent: { $in: deprecatedCategories } }] });
+  try { await Category.collection.dropIndex('name_1'); } catch (error) { if (error.codeName !== 'IndexNotFound') throw error; }
+  await Category.syncIndexes();
 
   for (const name of roots) {
-    await Category.findOneAndUpdate({ name }, { name, parent: null, createdBy: admin._id }, { upsert: true, returnDocument: 'after', runValidators: true });
+    await Category.findOneAndUpdate({ name, parent: null }, { name, parent: null, createdBy: admin._id }, { upsert: true, returnDocument: 'after', runValidators: true });
   }
-  for (const name of fashionSubcategories) {
-    await Category.findOneAndUpdate({ name }, { name, parent: 'fashion', createdBy: admin._id }, { upsert: true, returnDocument: 'after', runValidators: true });
+  for (const [parent, subcategories] of Object.entries(subcategoriesByRoot)) {
+    for (const name of subcategories) {
+      await Category.findOneAndUpdate({ name, parent }, { name, parent, createdBy: admin._id }, { upsert: true, returnDocument: 'after', runValidators: true });
+    }
   }
 
   for (const product of products) {
@@ -78,7 +103,8 @@ async function seed() {
 
   const currentNames = products.map((product) => product.name);
   await Product.deleteMany({ name: { $in: legacySeedNames, $nin: currentNames } });
-  console.log(`Seed complete: ${products.length} catalog products, ${roots.length} main categories, and ${fashionSubcategories.length} fashion subcategories. Existing admin password preserved.`);
+  const subcategoryCount = Object.values(subcategoriesByRoot).reduce((total, values) => total + values.length, 0);
+  console.log(`Seed complete: ${products.length} catalog products, ${roots.length} main categories, and ${subcategoryCount} subcategories. Existing admin password preserved.`);
 }
 
 seed()

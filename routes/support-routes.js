@@ -1,5 +1,5 @@
 const express = require('express');
-const { body } = require('express-validator');
+const { body, param } = require('express-validator');
 const { rateLimit } = require('express-rate-limit');
 const controller = require('../controllers/support-controllers');
 const authenticate = require('../middleware/authenticate-middleware');
@@ -14,6 +14,13 @@ const ticketLimiter = rateLimit({
   legacyHeaders: false,
   message: { status: 'fail', message: 'Too many support tickets. Please wait before trying again.' },
 });
+const replyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: process.env.NODE_ENV === 'test' ? 1000 : 40,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { status: 'fail', message: 'Too many support messages. Please wait before trying again.' },
+});
 
 router.get('/contact', controller.getContact);
 router.post('/tickets', ticketLimiter, optionalAuthenticate, [
@@ -26,5 +33,10 @@ router.post('/tickets', ticketLimiter, optionalAuthenticate, [
   validate,
 ], controller.createTicket);
 router.get('/my-tickets', authenticate, controller.getMyTickets);
+router.post('/tickets/:id/messages', replyLimiter, authenticate, [
+  param('id').isMongoId(),
+  body('message').trim().isLength({ min: 1, max: 3000 }),
+  validate,
+], controller.addCustomerMessage);
 
 module.exports = router;

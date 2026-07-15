@@ -7,6 +7,7 @@ import { CartService } from '../core/cart.service';
 import { EGYPT_LOCATIONS, LocationOption } from '../core/egypt-locations';
 import { LanguageService } from '../core/language.service';
 import { OrderService } from '../core/order.service';
+import { DeliverySettings } from '../core/models';
 import { TranslatePipe } from '../shared/translate.pipe';
 
 @Component({
@@ -28,6 +29,7 @@ import { TranslatePipe } from '../shared/translate.pipe';
           <p class="typeahead-hint"><i class="bi bi-keyboard"></i>{{ 'Tip: open a list and type the first letters to jump to a location.' | translate }}</p>
           <div class="payment-method"><i class="bi bi-cash-stack"></i><div><strong>{{ 'Cash on delivery' | translate }}</strong><small>{{ 'Pay safely when your order arrives.' | translate }}</small></div><i class="bi bi-check-circle-fill ms-auto"></i></div>
           <div class="order-totals"><div><span>{{ 'Subtotal' | translate }}</span><strong>{{ cart.subtotal() | currency }}</strong></div><div><span>{{ 'Shipping' | translate }}</span><strong>{{ shipping() === 0 ? ('Free' | translate) : (shipping() | currency) }}</strong></div><div class="total"><span>{{ 'Total' | translate }}</span><strong>{{ cart.subtotal() + shipping() | currency }}</strong></div></div>
+          @if (amountUntilFreeShipping() > 0) { <p class="free-shipping-progress"><i class="bi bi-truck"></i>{{ 'Add' | translate }} {{ amountUntilFreeShipping() | currency }} {{ 'more for free delivery.' | translate }}</p> }
           @if (cart.hasUnavailableItems()) { <div class="alert alert-warning checkout-warning"><i class="bi bi-exclamation-triangle me-2"></i>{{ 'Resolve unavailable cart items before placing the order.' | translate }}</div> }
           <button class="btn btn-primary-luxe w-100" type="submit" [disabled]="placing() || !cart.cart()?.items?.length || cart.hasUnavailableItems()">@if (placing()) { <span class="spinner-border spinner-border-sm me-2"></span> }<i class="bi bi-lock me-2"></i>{{ 'Place order' | translate }}</button><div class="checkout-trust"><span><i class="bi bi-shield-check"></i>{{ 'Secure checkout' | translate }}</span><span><i class="bi bi-arrow-counterclockwise"></i>{{ '30-day returns' | translate }}</span></div>
         </form></div></aside>
@@ -38,6 +40,7 @@ import { TranslatePipe } from '../shared/translate.pipe';
 export class CheckoutComponent implements OnInit {
   readonly loading = signal(true);
   readonly placing = signal(false);
+  readonly deliverySettings = signal<DeliverySettings>({ deliveryFee: 25, freeShippingThreshold: 2000 });
   readonly governorates = EGYPT_LOCATIONS;
   readonly selectedGovernorate = signal('');
   readonly cities = computed(() => this.governorates.find((item) => item.en === this.selectedGovernorate())?.cities || []);
@@ -62,8 +65,9 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void { this.cart.load().subscribe({ next: () => this.loading.set(false), error: () => this.loading.set(false) }); }
-  shipping(): number { return this.cart.subtotal() >= 500 ? 0 : 25; }
+  ngOnInit(): void { this.cart.load().subscribe({ next: () => this.loading.set(false), error: () => this.loading.set(false) }); this.orders.deliverySettings().subscribe((settings) => this.deliverySettings.set(settings)); }
+  shipping(): number { const settings = this.deliverySettings(); return settings.freeShippingThreshold && this.cart.subtotal() >= settings.freeShippingThreshold ? 0 : settings.deliveryFee; }
+  amountUntilFreeShipping(): number { const threshold = this.deliverySettings().freeShippingThreshold; return threshold && this.cart.subtotal() < threshold ? threshold - this.cart.subtotal() : 0; }
   updateQuantity(id: string, quantity: number): void { if (quantity >= 1) this.cart.update(id, quantity).subscribe(); }
   remove(id: string): void { this.cart.remove(id).subscribe(); }
   invalid(name: keyof typeof this.form.controls): boolean { const control = this.form.controls[name]; return control.invalid && (control.touched || control.dirty); }

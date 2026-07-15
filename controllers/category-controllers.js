@@ -45,7 +45,7 @@ async function createCategory(req, res) {
   const name = normalize(req.body.name);
   const parent = normalize(req.body.parent) || null;
   if (parent && parent === name) throw new AppError('A category cannot be its own parent', 400);
-  const existing = await Category.findOne({ name });
+  const existing = await Category.findOne({ name, parent });
   if (existing) throw new AppError('That category already exists', 409);
   if (parent) {
     const parentExists = await Category.exists({ name: parent, parent: null }) || await Product.exists({ category: parent });
