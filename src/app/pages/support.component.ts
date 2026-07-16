@@ -25,6 +25,10 @@ import { TranslatePipe } from '../shared/translate.pipe';
         <div class="support-boutique-wrap" aria-hidden="true">
           <div class="support-boutique-glow"></div>
           <div class="support-boutique" (pointermove)="trackSupportPointer($event)" (pointerleave)="resetSupportPointer($event)">
+            <svg class="boutique-gaze-layer" [class.is-active]="gazeConePath()" focusable="false">
+              <defs><linearGradient id="velloraGazeFill" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f86ff" stop-opacity=".2"></stop><stop offset=".72" stop-color="#7368f8" stop-opacity=".055"></stop><stop offset="1" stop-color="#7368f8" stop-opacity="0"></stop></linearGradient></defs>
+              <path class="boutique-gaze-fill" [attr.d]="gazeConePath()"></path>
+            </svg>
             <div class="boutique-topbar"><span>PRIVATE CLIENT DESK</span><span>CAIRO / 2026</span></div>
             <div class="boutique-sign"><i>V</i><div><strong>VELLORA</strong><span>CUSTOMER SERVICE</span></div><b><em></em> ONLINE</b></div>
             <div class="boutique-light light-one"></div><div class="boutique-light light-two"></div>
@@ -39,7 +43,6 @@ import { TranslatePipe } from '../shared/translate.pipe';
             <div class="boutique-agent-station">
               <div class="agent-chair"></div>
               <div class="support-agent">
-                <div class="agent-gaze-cone"></div>
                 <div class="agent-torso"><span></span><i></i></div>
                 <div class="agent-neck"></div>
                 <div class="agent-head">
@@ -62,8 +65,15 @@ import { TranslatePipe } from '../shared/translate.pipe';
     <section class="support-page"><div class="container-xxl">
       <div class="support-contact-grid"><article><i class="bi bi-envelope-paper"></i><div><small>{{ 'Email support' | translate }}</small><strong>{{ settings().email }}</strong></div><a [href]="'mailto:' + settings().email">{{ 'Send email' | translate }}</a></article><article><i class="bi bi-telephone"></i><div><small>{{ 'Call us' | translate }}</small><strong>{{ settings().phone }}</strong></div><a [href]="'tel:' + phoneLink()">{{ 'Call now' | translate }}</a></article><article><i class="bi bi-clock"></i><div><small>{{ 'Support hours' | translate }}</small><strong>{{ settings().hours }}</strong></div></article></div>
       <section id="store-location" class="support-location-card">
-        <div class="support-location-copy"><span class="eyebrow">VELLORA / {{ 'Store location' | translate }}</span><div class="support-location-icon"><i class="bi bi-geo-alt-fill"></i></div><h2>{{ 'Visit Vellora' | translate }}</h2><p>{{ 'XWJW+49J, Al Taif Street, off El-Higaz Street, Heliopolis, Cairo' | translate }}</p><a href="https://www.google.com/maps/search/?api=1&amp;query=XWJW%2B49J%2C%20Al%20Taif%20Street%2C%20off%20El-Higaz%20Street%2C%20Heliopolis%2C%20Cairo" target="_blank" rel="noopener noreferrer"><span>{{ 'Open in Google Maps' | translate }}</span><i class="bi bi-arrow-up-right"></i></a></div>
-        <div class="support-map-frame"><iframe title="Vellora store location on Google Maps" src="https://www.google.com/maps?q=XWJW%2B49J%2C%20Al%20Taif%20Street%2C%20off%20El-Higaz%20Street%2C%20Heliopolis%2C%20Cairo&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><span><i class="bi bi-pin-map-fill"></i> El-Higaz · Cairo</span></div>
+        <div class="support-location-copy"><span class="eyebrow">VELLORA / {{ 'Store location' | translate }}</span><div class="support-location-icon"><i class="bi bi-geo-alt-fill"></i></div><h2>{{ 'Visit Vellora' | translate }}</h2><p>{{ 'XWJW+49J, Al Taif Street, off El-Higaz Street, Heliopolis, Cairo' | translate }}</p><small>{{ 'Move your cursor across the map to light the way to Vellora.' | translate }}</small><a href="https://www.google.com/maps/search/?api=1&amp;query=XWJW%2B49J%2C%20Al%20Taif%20Street%2C%20off%20El-Higaz%20Street%2C%20Heliopolis%2C%20Cairo" target="_blank" rel="noopener noreferrer"><span>{{ 'Open in Google Maps' | translate }}</span><i class="bi bi-arrow-up-right"></i></a></div>
+        <div class="vellora-route-map" (pointermove)="trackMapPointer($event)" (pointerleave)="resetMapRoute()" role="img" [attr.aria-label]="'Interactive neighborhood map leading to the Vellora store' | translate">
+          <img src="/images/vellora-location-map-v1.webp" alt="" loading="lazy">
+          <div class="route-map-shade"></div>
+          <svg class="route-map-path" focusable="false"><path class="route-map-glow" [attr.d]="mapRoutePath()"></path><path class="route-map-line" [attr.d]="mapRoutePath()"></path></svg>
+          @if (mapRoutePath()) { <span class="route-map-origin" [style.left.px]="mapPointerX()" [style.top.px]="mapPointerY()"></span> }
+          <span class="route-map-instruction"><i class="bi bi-cursor-fill"></i>{{ 'Hover to find your way' | translate }}</span>
+        </div>
+        <div class="support-map-frame"><iframe title="Vellora store location on Google Maps" src="https://www.google.com/maps?q=XWJW%2B49J%2C%20Al%20Taif%20Street%2C%20off%20El-Higaz%20Street%2C%20Heliopolis%2C%20Cairo&amp;z=18&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><span><i class="bi bi-pin-map-fill"></i> El-Higaz · Cairo</span><b class="exact-map-pin"><i class="bi bi-geo-alt-fill"></i> VELLORA</b></div>
       </section>
       <div id="support-request" class="row g-4 align-items-start"><div class="col-lg-7"><section class="support-ticket-card"><div class="section-heading-simple"><span>{{ 'New request' | translate }}</span><h2>{{ 'Create a support ticket' | translate }}</h2><p>{{ 'Tell us what happened and include your order number when relevant.' | translate }}</p></div>
         @if (createdTicket(); as ticket) { <div class="ticket-success"><i class="bi bi-check-circle-fill"></i><div><strong>{{ 'Ticket created successfully' | translate }}</strong><p>{{ 'Reference number' | translate }}: <b>{{ ticket.ticketNumber }}</b></p></div>@if (auth.user()) { <button type="button" (click)="selectTicket(ticket)">{{ 'Open conversation' | translate }}</button> }<button type="button" (click)="createdTicket.set(null)">{{ 'Create another ticket' | translate }}</button></div> }
@@ -83,13 +93,18 @@ export class SupportComponent implements OnInit, OnDestroy {
   readonly selectedTicket = signal<SupportTicket | null>(null);
   readonly sending = signal(false);
   readonly replying = signal(false);
+  readonly gazeConePath = signal('');
+  readonly mapRoutePath = signal('');
+  readonly mapPointerX = signal(0);
+  readonly mapPointerY = signal(0);
   readonly form;
   readonly replyForm;
   private pointerFrame = 0;
   private pointerTarget: HTMLElement | null = null;
   private pointerX = 0;
   private pointerY = 0;
-  private pointerAngle = -12;
+  private pointerLocalX = 0;
+  private pointerLocalY = 0;
 
   constructor(private support: SupportService, public auth: AuthService, private toast: ToastService, fb: FormBuilder) {
     this.form = fb.nonNullable.group({ name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]], email: ['', [Validators.required, Validators.email, Validators.maxLength(160)]], phone: ['', Validators.maxLength(30)], category: ['other' as SupportTicket['category'], Validators.required], subject: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(160)]], message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(3000)]] });
@@ -116,11 +131,12 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.pointerTarget = target;
     this.pointerX = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width - .5) * 2));
     this.pointerY = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - .5) * 2));
-    const eye = target.querySelector<HTMLElement>('.agent-eye.eye-left')?.getBoundingClientRect();
-    if (eye) this.pointerAngle = Math.atan2(event.clientY - (eye.top + eye.height / 2), event.clientX - (eye.left + eye.width / 2)) * 180 / Math.PI;
+    this.pointerLocalX = event.clientX - bounds.left;
+    this.pointerLocalY = event.clientY - bounds.top;
     if (this.pointerFrame) return;
     this.pointerFrame = requestAnimationFrame(() => {
-      this.applySupportPointer(this.pointerTarget, this.pointerX, this.pointerY, this.pointerAngle);
+      this.applySupportPointer(this.pointerTarget, this.pointerX, this.pointerY);
+      this.updateGazePath(this.pointerTarget, this.pointerLocalX, this.pointerLocalY);
       this.pointerFrame = 0;
     });
   }
@@ -129,24 +145,61 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.pointerTarget = event.currentTarget as HTMLElement;
     this.pointerX = 0;
     this.pointerY = 0;
-    this.pointerAngle = -12;
+    this.gazeConePath.set('');
     if (this.pointerFrame) cancelAnimationFrame(this.pointerFrame);
     this.pointerFrame = requestAnimationFrame(() => {
-      this.applySupportPointer(this.pointerTarget, 0, 0, -12);
+      this.applySupportPointer(this.pointerTarget, 0, 0);
       this.pointerFrame = 0;
     });
   }
 
-  private applySupportPointer(target: HTMLElement | null, x: number, y: number, angle: number): void {
+  private applySupportPointer(target: HTMLElement | null, x: number, y: number): void {
     if (!target) return;
     target.style.setProperty('--support-x', `${(x * 18).toFixed(2)}px`);
     target.style.setProperty('--support-y', `${(y * 12).toFixed(2)}px`);
     target.style.setProperty('--support-gaze-x', `${(x * 3.4).toFixed(2)}px`);
     target.style.setProperty('--support-gaze-y', `${(y * 2.2).toFixed(2)}px`);
     target.style.setProperty('--support-head-turn', `${(x * 4.5).toFixed(2)}deg`);
-    target.style.setProperty('--support-gaze-angle', `${angle.toFixed(2)}deg`);
     target.style.setProperty('--support-tilt-x', `${(y * -1.8).toFixed(2)}deg`);
     target.style.setProperty('--support-tilt-y', `${(x * 2.6).toFixed(2)}deg`);
+  }
+
+  private updateGazePath(target: HTMLElement | null, targetX: number, targetY: number): void {
+    if (!target) return;
+    const bounds = target.getBoundingClientRect();
+    const eyes = Array.from(target.querySelectorAll<HTMLElement>('.agent-eye')).map((eye) => eye.getBoundingClientRect());
+    if (!eyes.length) return;
+    const originX = eyes.reduce((sum, eye) => sum + eye.left + eye.width / 2, 0) / eyes.length - bounds.left;
+    const originY = eyes.reduce((sum, eye) => sum + eye.top + eye.height / 2, 0) / eyes.length - bounds.top;
+    const angle = Math.atan2(targetY - originY, targetX - originX);
+    const distance = Math.min(340, Math.max(55, Math.hypot(targetX - originX, targetY - originY)));
+    const halfAngle = Math.PI / 12;
+    const upperX = originX + Math.cos(angle - halfAngle) * distance;
+    const upperY = originY + Math.sin(angle - halfAngle) * distance;
+    const lowerX = originX + Math.cos(angle + halfAngle) * distance;
+    const lowerY = originY + Math.sin(angle + halfAngle) * distance;
+    const point = (value: number) => value.toFixed(1);
+    this.gazeConePath.set(`M ${point(originX)} ${point(originY)} L ${point(upperX)} ${point(upperY)} L ${point(lowerX)} ${point(lowerY)} Z`);
+  }
+
+  trackMapPointer(event: PointerEvent): void {
+    if (event.pointerType === 'touch') return;
+    const map = event.currentTarget as HTMLElement;
+    const bounds = map.getBoundingClientRect();
+    const startX = event.clientX - bounds.left;
+    const startY = event.clientY - bounds.top;
+    const storeX = bounds.width * .684;
+    const storeY = bounds.height * .51;
+    const controlX = startX + (storeX - startX) * .52;
+    const curve = Math.max(-70, Math.min(70, (startY - storeY) * .24));
+    const point = (value: number) => value.toFixed(1);
+    this.mapPointerX.set(startX);
+    this.mapPointerY.set(startY);
+    this.mapRoutePath.set(`M ${point(startX)} ${point(startY)} C ${point(controlX)} ${point(startY - curve)}, ${point(controlX)} ${point(storeY + curve)}, ${point(storeX)} ${point(storeY)}`);
+  }
+
+  resetMapRoute(): void {
+    this.mapRoutePath.set('');
   }
 
   submit(): void {
