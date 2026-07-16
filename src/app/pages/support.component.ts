@@ -26,7 +26,7 @@ import { TranslatePipe } from '../shared/translate.pipe';
           <div class="support-boutique-glow"></div>
           <div class="support-boutique" (pointermove)="trackSupportPointer($event)" (pointerleave)="resetSupportPointer($event)">
             <svg class="boutique-gaze-layer" [class.is-active]="gazeConePath()" focusable="false">
-              <defs><linearGradient id="velloraGazeFill" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff6048" stop-opacity=".2"></stop><stop offset=".72" stop-color="#ff6048" stop-opacity=".055"></stop><stop offset="1" stop-color="#ff6048" stop-opacity="0"></stop></linearGradient></defs>
+              <defs><linearGradient id="velloraGazeFill" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff9b80" stop-opacity=".2"></stop><stop offset=".72" stop-color="#f26a4a" stop-opacity=".055"></stop><stop offset="1" stop-color="#f26a4a" stop-opacity="0"></stop></linearGradient></defs>
               <path class="boutique-gaze-fill" [attr.d]="gazeConePath()"></path>
             </svg>
             <div class="boutique-topbar"><span>PRIVATE CLIENT DESK</span><span>CAIRO / 2026</span></div>
