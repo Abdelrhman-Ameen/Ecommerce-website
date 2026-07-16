@@ -10,52 +10,67 @@ import { TranslatePipe } from './translate.pipe';
   imports: [RouterLink, TranslatePipe],
   template: `
     <section class="auth-experience" [class.auth-experience-register]="variant === 'register'">
-      <img class="auth-film" src="/assets/home/fashion-hero-03.webp" alt="" fetchpriority="high" aria-hidden="true">
-      <div class="auth-film-shade" aria-hidden="true"></div>
-      <div class="auth-film-grain" aria-hidden="true"></div>
+      <div class="auth-shell">
+        <section class="auth-form-pane">
+          <header class="auth-pane-header">
+            <a class="auth-campaign-brand" routerLink="/" aria-label="Vellora home">
+              <span class="brand-logo-crop" aria-hidden="true"><img src="/assets/brand/vellora-logo.png" alt=""></span>
+              <strong>VELLORA</strong>
+            </a>
+            <div class="auth-campaign-actions">
+              <a class="auth-collection-link" routerLink="/products" [attr.aria-label]="'View collection' | translate">
+                <i class="bi bi-grid"></i><span>{{ 'View collection' | translate }}</span>
+              </a>
+              <button class="auth-round-control" type="button" (click)="theme.toggle()" [attr.aria-label]="(theme.theme() === 'light' ? 'Enable dark mode' : 'Enable light mode') | translate">
+                <i class="bi" [class.bi-moon-stars]="theme.theme() === 'light'" [class.bi-sun]="theme.theme() === 'dark'"></i>
+              </button>
+              <button class="auth-language-control" type="button" (click)="language.toggle()">
+                {{ language.language() === 'en' ? 'عربي' : 'EN' }}
+              </button>
+            </div>
+          </header>
 
-      <header class="auth-campaign-header">
-        <a class="auth-campaign-brand" routerLink="/" aria-label="Vellora home">
-          <span class="brand-logo-crop" aria-hidden="true"><img src="/assets/brand/vellora-logo.png" alt=""></span>
-          <strong>VELLORA</strong>
-        </a>
-        <div class="auth-campaign-actions">
-          <a class="auth-collection-link" routerLink="/products">
-            {{ 'View collection' | translate }} <i class="bi bi-arrow-up-right"></i>
-          </a>
-          <button class="auth-round-control" type="button" (click)="theme.toggle()" [attr.aria-label]="(theme.theme() === 'light' ? 'Enable dark mode' : 'Enable light mode') | translate">
-            <i class="bi" [class.bi-moon-stars]="theme.theme() === 'light'" [class.bi-sun]="theme.theme() === 'dark'"></i>
-          </button>
-          <button class="auth-language-control" type="button" (click)="language.toggle()">
-            {{ language.language() === 'en' ? 'عربي' : 'EN' }}
-          </button>
-        </div>
-      </header>
+          <main class="auth-form-stage">
+            <ng-content></ng-content>
+          </main>
 
-      <main class="auth-campaign-layout">
-        <section class="auth-editorial-copy" aria-labelledby="auth-campaign-title">
-          <p class="auth-campaign-kicker"><span></span>{{ 'VELLORA PRIVATE EDIT' | translate }} · 2026</p>
-          <h1 id="auth-campaign-title">
-            <span>{{ 'WEAR YOUR' | translate }}</span>
-            <span>{{ 'CONFIDENCE' | translate }}</span>
-          </h1>
-          <p class="auth-campaign-summary">{{ 'A considered space for your saved pieces, orders, and next signature look.' | translate }}</p>
-          <div class="auth-campaign-proof" aria-label="Vellora account benefits">
+          <footer class="auth-pane-footer">
             <span><i class="bi bi-shield-check"></i>{{ 'Secure access' | translate }}</span>
-            <span><i class="bi bi-bag-check"></i>{{ 'Faster checkout' | translate }}</span>
-            <span><i class="bi bi-heart"></i>{{ 'Saved favorites' | translate }}</span>
-          </div>
+            <span>CAIRO · EGYPT</span>
+          </footer>
         </section>
 
-        <div class="auth-form-stage">
-          <ng-content></ng-content>
-        </div>
-      </main>
+        <aside class="auth-visual-pane" aria-label="Vellora animated fashion fitting room">
+          <div class="auth-tailor-grid" aria-hidden="true"></div>
+          <div class="auth-scene-label" aria-hidden="true"><span></span>VELLORA STYLE LAB · 2026</div>
 
-      <footer class="auth-campaign-footer">
-        <span>CAIRO · EGYPT</span>
-        <span>{{ variant === 'login' ? ('MEMBER ACCESS' | translate) : ('NEW MEMBERSHIP' | translate) }} · {{ variant === 'login' ? '01' : '02' }}</span>
-      </footer>
+          <div class="auth-fashion-orbit" aria-hidden="true">
+            <span class="auth-orbit-ring auth-ring-one"></span>
+            <span class="auth-orbit-ring auth-ring-two"></span>
+            <span class="auth-orbit-ring auth-ring-three"></span>
+            <span class="auth-thread auth-thread-one"></span>
+            <span class="auth-thread auth-thread-two"></span>
+
+            <div class="auth-hanger-look">
+              <span class="auth-hanger-hook"></span>
+              <span class="auth-hanger-bar auth-hanger-left"></span>
+              <span class="auth-hanger-bar auth-hanger-right"></span>
+              <span class="auth-fashion-dress"></span>
+              <span class="auth-dress-seam"></span>
+            </div>
+
+            <span class="auth-orbit-piece auth-piece-bag"><i class="bi bi-bag-heart"></i></span>
+            <span class="auth-orbit-piece auth-piece-glasses"><i class="bi bi-sunglasses"></i></span>
+            <span class="auth-orbit-piece auth-piece-spark"><i class="bi bi-stars"></i></span>
+          </div>
+
+          <div class="auth-visual-message">
+            <span>{{ 'VELLORA PRIVATE EDIT' | translate }}</span>
+            <h2>{{ 'WEAR YOUR' | translate }} <strong>{{ 'CONFIDENCE' | translate }}</strong></h2>
+            <p>{{ 'A considered space for your saved pieces, orders, and next signature look.' | translate }}</p>
+          </div>
+        </aside>
+      </div>
     </section>
   `,
 })
