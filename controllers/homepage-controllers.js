@@ -6,7 +6,7 @@ const AppError = require('../utils/app-error');
 const DEFAULT_HERO = [
   { image: '/assets/home/fashion-hero-01.webp', alt: 'Model in a sculptural black evening look against a red studio background', background: '#7d1718', accent: '#ee5a46' },
   { image: '/assets/home/fashion-hero-02.webp', alt: 'Model in a monochrome editorial look', background: '#d6d2cc', accent: '#171717' },
-  { image: '/assets/home/fashion-hero-03.webp', alt: 'Model wearing a checked coat and white sunglasses', background: '#063b3e', accent: '#ff5a36' },
+  { image: '/assets/home/fashion-hero-03.webp', alt: 'Model wearing a checked coat and white sunglasses', background: '#101010', accent: '#ff5a36' },
 ];
 const DEFAULT_EDITORIAL = [
   { image: '/assets/home/fashion-hero-02.webp', alt: 'Black and white editorial fashion portrait' },
