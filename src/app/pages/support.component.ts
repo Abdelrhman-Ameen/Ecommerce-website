@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../core/auth.service';
 import { SupportSettings, SupportTicket } from '../core/models';
@@ -11,14 +11,61 @@ import { TranslatePipe } from '../shared/translate.pipe';
   standalone: true,
   imports: [DatePipe, ReactiveFormsModule, TranslatePipe],
   template: `
-    <section class="support-hero"><div class="container-xxl"><span class="eyebrow">VELLORA / {{ 'SUPPORT' | translate }}</span><h1>{{ 'How can we help?' | translate }}</h1><p>{{ 'Create a support ticket or contact the store directly. Your request will be available to our admin team immediately.' | translate }}</p></div></section>
+    <section class="support-hero">
+      <div class="support-hero-noise" aria-hidden="true"></div>
+      <div class="container-xxl support-hero-grid">
+        <div class="support-hero-copy">
+          <span class="support-live-pill"><i></i>{{ 'Live boutique support' | translate }}</span>
+          <span class="eyebrow">VELLORA / {{ 'SUPPORT' | translate }}</span>
+          <h1>{{ 'How can we help?' | translate }}</h1>
+          <p>{{ 'A real person is ready to help with orders, styling, delivery, and returns.' | translate }}</p>
+          <a class="support-hero-cta" href="#support-request"><span>{{ 'Start a conversation' | translate }}</span><i class="bi bi-arrow-down-right"></i></a>
+        </div>
+
+        <div class="support-boutique-wrap" aria-hidden="true">
+          <div class="support-boutique-glow"></div>
+          <div class="support-boutique" (pointermove)="trackSupportPointer($event)" (pointerleave)="resetSupportPointer($event)">
+            <div class="boutique-topbar"><span>PRIVATE CLIENT DESK</span><span>CAIRO / 2026</span></div>
+            <div class="boutique-sign"><i>V</i><div><strong>VELLORA</strong><span>CUSTOMER SERVICE</span></div><b><em></em> ONLINE</b></div>
+            <div class="boutique-light light-one"></div><div class="boutique-light light-two"></div>
+            <div class="boutique-shelf"><span></span><i></i><b></b></div>
+            <div class="boutique-rail">
+              <span class="rail-bar"></span><span class="rail-leg rail-leg-left"></span><span class="rail-leg rail-leg-right"></span>
+              <div class="boutique-garment garment-one"><i></i><span></span></div>
+              <div class="boutique-garment garment-two"><i></i><span></span></div>
+              <div class="boutique-garment garment-three"><i></i><span></span></div>
+            </div>
+
+            <div class="boutique-agent-station">
+              <div class="agent-chair"></div>
+              <div class="support-agent">
+                <div class="agent-gaze-cone"></div>
+                <div class="agent-torso"><span></span><i></i></div>
+                <div class="agent-neck"></div>
+                <div class="agent-head">
+                  <div class="agent-hair"></div><div class="agent-ear"></div><div class="agent-headset"></div>
+                  <div class="agent-brow brow-left"></div><div class="agent-brow brow-right"></div>
+                  <div class="agent-eye eye-left"><i></i></div><div class="agent-eye eye-right"><i></i></div>
+                  <div class="agent-nose"></div><div class="agent-smile"></div>
+                </div>
+              </div>
+              <div class="agent-desk"><div class="agent-laptop"><i>V</i><span></span></div><b></b></div>
+            </div>
+
+            <div class="boutique-message message-one"><i class="bi bi-chat-heart-fill"></i><span>STYLE ADVICE</span></div>
+            <div class="boutique-message message-two"><i class="bi bi-box-seam"></i><span>ORDER READY</span></div>
+            <div class="boutique-caption"><span>01 / PERSONAL SUPPORT</span><strong>Vellora — Customer Service</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
     <section class="support-page"><div class="container-xxl">
       <div class="support-contact-grid"><article><i class="bi bi-envelope-paper"></i><div><small>{{ 'Email support' | translate }}</small><strong>{{ settings().email }}</strong></div><a [href]="'mailto:' + settings().email">{{ 'Send email' | translate }}</a></article><article><i class="bi bi-telephone"></i><div><small>{{ 'Call us' | translate }}</small><strong>{{ settings().phone }}</strong></div><a [href]="'tel:' + phoneLink()">{{ 'Call now' | translate }}</a></article><article><i class="bi bi-clock"></i><div><small>{{ 'Support hours' | translate }}</small><strong>{{ settings().hours }}</strong></div></article></div>
       <section id="store-location" class="support-location-card">
         <div class="support-location-copy"><span class="eyebrow">VELLORA / {{ 'Store location' | translate }}</span><div class="support-location-icon"><i class="bi bi-geo-alt-fill"></i></div><h2>{{ 'Visit Vellora' | translate }}</h2><p>{{ 'XWJW+49J, Al Taif Street, off El-Higaz Street, Heliopolis, Cairo' | translate }}</p><a href="https://www.google.com/maps/search/?api=1&amp;query=XWJW%2B49J%2C%20Al%20Taif%20Street%2C%20off%20El-Higaz%20Street%2C%20Heliopolis%2C%20Cairo" target="_blank" rel="noopener noreferrer"><span>{{ 'Open in Google Maps' | translate }}</span><i class="bi bi-arrow-up-right"></i></a></div>
         <div class="support-map-frame"><iframe title="Vellora store location on Google Maps" src="https://www.google.com/maps?q=XWJW%2B49J%2C%20Al%20Taif%20Street%2C%20off%20El-Higaz%20Street%2C%20Heliopolis%2C%20Cairo&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><span><i class="bi bi-pin-map-fill"></i> El-Higaz · Cairo</span></div>
       </section>
-      <div class="row g-4 align-items-start"><div class="col-lg-7"><section class="support-ticket-card"><div class="section-heading-simple"><span>{{ 'New request' | translate }}</span><h2>{{ 'Create a support ticket' | translate }}</h2><p>{{ 'Tell us what happened and include your order number when relevant.' | translate }}</p></div>
+      <div id="support-request" class="row g-4 align-items-start"><div class="col-lg-7"><section class="support-ticket-card"><div class="section-heading-simple"><span>{{ 'New request' | translate }}</span><h2>{{ 'Create a support ticket' | translate }}</h2><p>{{ 'Tell us what happened and include your order number when relevant.' | translate }}</p></div>
         @if (createdTicket(); as ticket) { <div class="ticket-success"><i class="bi bi-check-circle-fill"></i><div><strong>{{ 'Ticket created successfully' | translate }}</strong><p>{{ 'Reference number' | translate }}: <b>{{ ticket.ticketNumber }}</b></p></div>@if (auth.user()) { <button type="button" (click)="selectTicket(ticket)">{{ 'Open conversation' | translate }}</button> }<button type="button" (click)="createdTicket.set(null)">{{ 'Create another ticket' | translate }}</button></div> }
         @else { <form [formGroup]="form" (ngSubmit)="submit()" novalidate><div class="row g-3"><div class="col-sm-6 form-group-luxe"><label for="supportName">{{ 'Full name' | translate }} *</label><input id="supportName" class="form-control" formControlName="name" autocomplete="name"></div><div class="col-sm-6 form-group-luxe"><label for="supportEmail">{{ 'Email address' | translate }} *</label><input id="supportEmail" class="form-control" type="email" formControlName="email" autocomplete="email"></div><div class="col-sm-6 form-group-luxe"><label for="supportPhone">{{ 'Phone number' | translate }}</label><input id="supportPhone" class="form-control" formControlName="phone" autocomplete="tel"></div><div class="col-sm-6 form-group-luxe"><label for="supportCategory">{{ 'Topic' | translate }} *</label><select id="supportCategory" class="form-select" formControlName="category"><option value="order">{{ 'Order' | translate }}</option><option value="product">{{ 'Product' | translate }}</option><option value="delivery">{{ 'Delivery' | translate }}</option><option value="return">{{ 'Return or exchange' | translate }}</option><option value="account">{{ 'Account' | translate }}</option><option value="other">{{ 'Other' | translate }}</option></select></div><div class="col-12 form-group-luxe"><label for="supportSubject">{{ 'Subject' | translate }} *</label><input id="supportSubject" class="form-control" formControlName="subject" maxlength="160"></div><div class="col-12 form-group-luxe"><label for="supportMessage">{{ 'How can we help?' | translate }} *</label><textarea id="supportMessage" class="form-control" formControlName="message" rows="6" maxlength="3000"></textarea><small class="form-hint">{{ form.controls.message.value.length }}/3000</small></div></div><button class="btn btn-primary-luxe" type="submit" [disabled]="form.invalid || sending()">@if (sending()) { <span class="spinner-border spinner-border-sm me-2"></span> }{{ (sending() ? 'Sending...' : 'Send support ticket') | translate }}</button></form> }
       </section></div>
@@ -29,7 +76,7 @@ import { TranslatePipe } from '../shared/translate.pipe';
     </div></section>
   `,
 })
-export class SupportComponent implements OnInit {
+export class SupportComponent implements OnInit, OnDestroy {
   readonly settings = signal<SupportSettings>({ email: 'support@vellora.store', phone: '+20 100 000 0000', hours: 'Sunday–Thursday, 9:00–17:00 Cairo time' });
   readonly tickets = signal<SupportTicket[]>([]);
   readonly createdTicket = signal<SupportTicket | null>(null);
@@ -38,6 +85,11 @@ export class SupportComponent implements OnInit {
   readonly replying = signal(false);
   readonly form;
   readonly replyForm;
+  private pointerFrame = 0;
+  private pointerTarget: HTMLElement | null = null;
+  private pointerX = 0;
+  private pointerY = 0;
+  private pointerAngle = -12;
 
   constructor(private support: SupportService, public auth: AuthService, private toast: ToastService, fb: FormBuilder) {
     this.form = fb.nonNullable.group({ name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]], email: ['', [Validators.required, Validators.email, Validators.maxLength(160)]], phone: ['', Validators.maxLength(30)], category: ['other' as SupportTicket['category'], Validators.required], subject: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(160)]], message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(3000)]] });
@@ -51,6 +103,50 @@ export class SupportComponent implements OnInit {
       this.form.patchValue({ name: `${user.firstName} ${user.lastName}`, email: user.email, phone: user.phone || '' });
       this.support.myTickets().subscribe((tickets) => this.tickets.set(tickets));
     }
+  }
+
+  ngOnDestroy(): void {
+    if (this.pointerFrame) cancelAnimationFrame(this.pointerFrame);
+  }
+
+  trackSupportPointer(event: PointerEvent): void {
+    if (event.pointerType === 'touch') return;
+    const target = event.currentTarget as HTMLElement;
+    const bounds = target.getBoundingClientRect();
+    this.pointerTarget = target;
+    this.pointerX = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width - .5) * 2));
+    this.pointerY = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - .5) * 2));
+    const eye = target.querySelector<HTMLElement>('.agent-eye.eye-left')?.getBoundingClientRect();
+    if (eye) this.pointerAngle = Math.atan2(event.clientY - (eye.top + eye.height / 2), event.clientX - (eye.left + eye.width / 2)) * 180 / Math.PI;
+    if (this.pointerFrame) return;
+    this.pointerFrame = requestAnimationFrame(() => {
+      this.applySupportPointer(this.pointerTarget, this.pointerX, this.pointerY, this.pointerAngle);
+      this.pointerFrame = 0;
+    });
+  }
+
+  resetSupportPointer(event: PointerEvent): void {
+    this.pointerTarget = event.currentTarget as HTMLElement;
+    this.pointerX = 0;
+    this.pointerY = 0;
+    this.pointerAngle = -12;
+    if (this.pointerFrame) cancelAnimationFrame(this.pointerFrame);
+    this.pointerFrame = requestAnimationFrame(() => {
+      this.applySupportPointer(this.pointerTarget, 0, 0, -12);
+      this.pointerFrame = 0;
+    });
+  }
+
+  private applySupportPointer(target: HTMLElement | null, x: number, y: number, angle: number): void {
+    if (!target) return;
+    target.style.setProperty('--support-x', `${(x * 18).toFixed(2)}px`);
+    target.style.setProperty('--support-y', `${(y * 12).toFixed(2)}px`);
+    target.style.setProperty('--support-gaze-x', `${(x * 3.4).toFixed(2)}px`);
+    target.style.setProperty('--support-gaze-y', `${(y * 2.2).toFixed(2)}px`);
+    target.style.setProperty('--support-head-turn', `${(x * 4.5).toFixed(2)}deg`);
+    target.style.setProperty('--support-gaze-angle', `${angle.toFixed(2)}deg`);
+    target.style.setProperty('--support-tilt-x', `${(y * -1.8).toFixed(2)}deg`);
+    target.style.setProperty('--support-tilt-y', `${(x * 2.6).toFixed(2)}deg`);
   }
 
   submit(): void {
