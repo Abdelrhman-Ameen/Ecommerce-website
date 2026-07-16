@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, signal, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '../core/language.service';
 import { ThemeService } from '../core/theme.service';
@@ -9,7 +9,14 @@ import { TranslatePipe } from './translate.pipe';
   standalone: true,
   imports: [RouterLink, TranslatePipe],
   template: `
-    <section class="auth-experience" [class.auth-experience-register]="variant === 'register'">
+    <section class="auth-experience" [class.auth-experience-register]="variant === 'register'" (pointerdown)="ensureVideoPlayback()">
+      @if (!isPhone()) {
+        <video #authVideo class="auth-page-video" autoplay muted loop playsinline preload="auto" aria-hidden="true" (canplay)="ensureVideoPlayback()">
+          <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260703_053131_1ec3dd1c-d627-44fb-ab20-6e1fce41b0d5.mp4" type="video/mp4">
+        </video>
+        <div class="auth-page-video-shade" aria-hidden="true"></div>
+      }
+
       <div class="auth-shell">
         <section class="auth-form-pane">
           <header class="auth-pane-header">
@@ -74,8 +81,47 @@ import { TranslatePipe } from './translate.pipe';
     </section>
   `,
 })
-export class AuthShowcaseComponent {
+export class AuthShowcaseComponent implements AfterViewInit, OnDestroy {
   @Input() variant: 'login' | 'register' = 'login';
+  @ViewChild('authVideo') private authVideo?: ElementRef<HTMLVideoElement>;
+
+  private readonly phoneQuery = window.matchMedia('(max-width: 560px)');
+  readonly isPhone = signal(this.phoneQuery.matches);
+  private playbackRetry?: number;
+  private playbackAttempts = 0;
+  private readonly resumePlayback = (): void => {
+    if (!document.hidden) this.ensureVideoPlayback();
+  };
+  private readonly updatePhoneMode = (event: MediaQueryListEvent): void => {
+    this.isPhone.set(event.matches);
+    if (!event.matches) this.playbackRetry = window.setTimeout(() => this.ensureVideoPlayback(), 0);
+  };
 
   constructor(public language: LanguageService, public theme: ThemeService) {}
+
+  ngAfterViewInit(): void {
+    document.addEventListener('visibilitychange', this.resumePlayback);
+    this.phoneQuery.addEventListener('change', this.updatePhoneMode);
+    this.playbackRetry = window.setTimeout(() => this.ensureVideoPlayback(), 0);
+  }
+
+  ensureVideoPlayback(): void {
+    const video = this.authVideo?.nativeElement;
+    if (!video || !video.paused || typeof video.play !== 'function') return;
+    video.muted = true;
+    const playback = video.play();
+    if (!playback) return;
+    void playback.catch(() => {
+      if (this.playbackAttempts >= 3) return;
+      this.playbackAttempts += 1;
+      window.clearTimeout(this.playbackRetry);
+      this.playbackRetry = window.setTimeout(() => this.ensureVideoPlayback(), 450 * this.playbackAttempts);
+    });
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('visibilitychange', this.resumePlayback);
+    this.phoneQuery.removeEventListener('change', this.updatePhoneMode);
+    window.clearTimeout(this.playbackRetry);
+  }
 }
