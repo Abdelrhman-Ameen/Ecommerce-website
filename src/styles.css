@@ -25,6 +25,13 @@
 }
 * { box-sizing: border-box; }
 html { min-height: 100%; scroll-behavior: smooth; }
+/* Vellora scrollbar: warm orange accent, ivory light mode, and ink dark mode. */
+*, *::before, *::after { scrollbar-color: var(--primary) var(--surface); scrollbar-width: thin; }
+*::-webkit-scrollbar { width: 11px; height: 11px; }
+*::-webkit-scrollbar-track { background: var(--surface); }
+*::-webkit-scrollbar-thumb { background: var(--primary); border: 3px solid var(--surface); border-radius: 999px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
+*::-webkit-scrollbar-corner { background: var(--surface); }
 body { min-height: 100%; margin: 0; color: var(--ink); background: var(--surface); font-family: Inter, "Segoe UI", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 body.rtl { font-family: Tahoma, Arial, sans-serif; }
 a { color: inherit; }
